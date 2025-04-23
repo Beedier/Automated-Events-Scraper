@@ -1,0 +1,17 @@
+[project]
+name = "automated-events-scraper"
+version = "0.1.0"
+description = "Automated system that scrapes event data, metadata, and images from multiple websites with zero manual effort."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "alembic>=1.15.2",
+    "beautifulsoup4>=4.13.4",
+    "google-generativeai>=0.8.5",
+    "pillow>=11.2.1",
+    "psycopg2-binary>=2.9.10",
+    "python-dotenv>=1.1.0",
+    "requests>=2.32.3",
+    "selenium>=4.31.0",
+    "sqlalchemy>=2.0.40",
+]
