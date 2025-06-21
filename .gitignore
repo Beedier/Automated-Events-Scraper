@@ -11,3 +11,4 @@ wheels/
 .env
 .idea/
 tests/images/output/
+chromedriver-linux64/
