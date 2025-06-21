@@ -28,6 +28,7 @@ class Event(Base):
     website_name = Column(String, nullable=False, index=True)
 
     # Raw and processed content fields
+    category = Column(String, nullable=True)
     web_content = Column(Text, nullable=True)
     title = Column(Text, nullable=True)
     index_intro = Column(Text, nullable=True)
