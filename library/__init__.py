@@ -5,3 +5,5 @@ from .date_utils import get_dates_info
 from .date_utils import get_relative_dates
 from .date_utils import get_date_range_info
 from .text_utils import extract_clean_text
+from .event_category_mapper import get_event_category
+from .html_utils import extract_text_or_none, clean_text
