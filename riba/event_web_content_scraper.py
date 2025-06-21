@@ -78,7 +78,7 @@ def get_event_web_content_from_riba(
     event_category = get_event_category(event_type=event_type)
     event_title = clean_text(extract_text_or_none(soup.select_one("h1.call-to-action-hero__title")))
     event_intro = clean_text(extract_text_or_none(soup.select_one("p.call-to-action-hero__intro")))
-    event_description = clean_text(extract_text_or_none(soup.select_one("article.rich-text")))
+    event_description = extract_text_or_none(soup.select_one("article.rich-text"))
 
     # Parse list-based event metadata
     ul = soup.select_one("ul.call-to-action-hero__list")
@@ -90,10 +90,9 @@ def get_event_web_content_from_riba(
 Title: {event_title}
 Intro: {event_intro}
 Date: {event_details.get("date")}
-Place: {event_details.get("location")}
+Place: {event_details.get("place")}
 Contact: {event_details.get("contact")}
-Cost: {event_details.get("price")}
-
+Cost: {event_details.get("cost")}
 Description: {event_description}"""
 
     return formatted, event_category
