@@ -10,6 +10,7 @@ from sqlalchemy.orm import relationship
 # Enum for publish status of events
 # -------------------------------------------------------------------
 class PublishStatusEnum(str, enum.Enum):
+    unsynced = "unsynced"
     draft = "draft"
     published = "published"
 
@@ -47,7 +48,7 @@ class Event(Base):
     publish_status = Column(
         Enum(PublishStatusEnum, name="publish_status_enum"),
         nullable=False,
-        default=PublishStatusEnum.draft
+        default=PublishStatusEnum.unsynced
     )
 
     # Timestamps
@@ -78,6 +79,9 @@ class Image(Base):
 
     # Image URL (must be unique)
     image_url = Column(String, unique=True, nullable=False)
+
+    # Local Path
+    image_path = Column(String, nullable=True)
 
     # Timestamps
     updated_at = Column(DateTime, onupdate=func.now())
