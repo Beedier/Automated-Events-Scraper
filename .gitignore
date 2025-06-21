@@ -12,3 +12,6 @@ wheels/
 .idea/
 tests/images/output/
 chromedriver-linux64/
+
+# uv config files
+uv.lock
