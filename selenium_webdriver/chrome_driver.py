@@ -8,7 +8,7 @@ def get_selenium_chrome_driver(
     headless: bool = True,
     user_agent: str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
     download_dir: str = None,
-    binary_path="/usr/bin/google-chrome",
+    binary_path=None,
     chromedriver_path="/usr/local/bin/chromedriver"
 ):
     options = Options()
