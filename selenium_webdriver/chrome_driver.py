@@ -39,4 +39,7 @@ def get_selenium_chrome_driver(
         options=options
     )
 
+    # Set window size maximize
+    driver.maximize_window()
+
     return driver
