@@ -49,7 +49,7 @@ def extract_event_details_from_list(ul_block: Tag) -> dict:
 def get_event_web_content_from_riba(
     event_url: str,
     chromedriver: WebDriver
-) -> tuple[str, str | None]:
+) -> tuple[str, str, str | None]:
     """
     Loads a RIBA event detail page, extracts and formats event data.
 
@@ -58,7 +58,7 @@ def get_event_web_content_from_riba(
         chromedriver (WebDriver): Selenium WebDriver instance.
 
     Returns:
-        tuple[str, str | None]: A formatted string with event details, and the detected event category.
+        tuple[str, str, str | None]: A formatted string with event details, and the detected event category.
     """
     chromedriver.get(event_url)
 
@@ -95,4 +95,4 @@ Contact: {event_details.get("contact")}
 Cost: {event_details.get("cost")}
 Description: {event_description}"""
 
-    return formatted, event_category
+    return event_title, formatted, event_category
