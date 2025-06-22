@@ -26,7 +26,8 @@ def get_event_category(event_type: str) -> str | None:
             "Talks by architects",
             "Walking tours",
             "Architectural films",
-            "Exhibitions"
+            "Exhibitions",
+            "Talks and lectures"
         ]
     }
 
