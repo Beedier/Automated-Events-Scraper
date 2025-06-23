@@ -1,0 +1,2 @@
+from .event_url_scraper import get_event_urls_from_event_bright
+from .event_web_content_scraper import get_event_web_content_from_event_bright
