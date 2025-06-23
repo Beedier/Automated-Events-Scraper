@@ -37,7 +37,7 @@ def extract_event_details_from_bco_ul(ul_block: Tag) -> dict:
 def get_event_web_content_from_bco_org(
     event_url: str,
     chromedriver: WebDriver
-) -> tuple[str, str, str | None]:
+) -> tuple[str, str]:
     """
     Loads a BCO.org.uk event detail page, extracts and formats event data.
 
@@ -62,7 +62,6 @@ def get_event_web_content_from_bco_org(
     product_event_info_col_el = soup.select_one('div.product_event_info')
 
     # Extract core elements
-    event_category = None
     event_title = clean_text(extract_text_or_none(product_info_col_el.select_one("h1.product_title.entry-title")))
     event_description = "\n".join(
         clean_text(extract_text_or_none(p)) for p in product_info_col_el.select("p") if extract_text_or_none(p)
@@ -88,4 +87,4 @@ def get_event_web_content_from_bco_org(
 
     # Append description last
     formatted += f"\nDescription:\n\t{event_description}"
-    return event_title, formatted, event_category
+    return event_title, formatted

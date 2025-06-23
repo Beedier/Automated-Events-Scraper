@@ -49,7 +49,7 @@ def extract_event_details_from_list(ul_block: Tag) -> dict:
 def get_event_web_content_from_riba(
     event_url: str,
     chromedriver: WebDriver
-) -> tuple[str, str, str | None]:
+) -> tuple[str, str]:
     """
     Loads a RIBA event detail page, extracts and formats event data.
 
@@ -88,6 +88,7 @@ def get_event_web_content_from_riba(
     # Format output string
     formatted = f"""\
 Title: {event_title}
+Category: {event_category}
 Intro: {event_intro}
 Date: {event_details.get("date")}
 Place: {event_details.get("place")}
@@ -95,4 +96,4 @@ Contact: {event_details.get("contact")}
 Cost: {event_details.get("cost")}
 Description: {event_description}"""
 
-    return event_title, formatted, event_category
+    return event_title, formatted
