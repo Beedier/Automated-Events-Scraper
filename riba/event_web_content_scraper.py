@@ -5,7 +5,7 @@ from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
-from library import extract_text_or_none, get_event_category, clean_text
+from library import extract_text_or_none, clean_text
 
 
 def extract_event_details_from_list(ul_block: Tag) -> dict:
@@ -49,7 +49,7 @@ def extract_event_details_from_list(ul_block: Tag) -> dict:
 def get_event_web_content_from_riba(
     event_url: str,
     chromedriver: WebDriver
-) -> tuple[str, str]:
+) -> str:
     """
     Loads a RIBA event detail page, extracts and formats event data.
 
@@ -58,7 +58,7 @@ def get_event_web_content_from_riba(
         chromedriver (WebDriver): Selenium WebDriver instance.
 
     Returns:
-        tuple[str, str, str | None]: A formatted string with event details, and the detected event category.
+        str: A formatted string with event details, and the detected event category.
     """
     chromedriver.get(event_url)
 
@@ -75,7 +75,6 @@ def get_event_web_content_from_riba(
 
     # Extract core elements
     event_type = clean_text(extract_text_or_none(soup.select_one("span.call-to-action-hero__tag")))
-    event_category = get_event_category(event_type=event_type)
     event_title = clean_text(extract_text_or_none(soup.select_one("h1.call-to-action-hero__title")))
     event_intro = clean_text(extract_text_or_none(soup.select_one("p.call-to-action-hero__intro")))
     event_description = extract_text_or_none(soup.select_one("article.rich-text"))
@@ -88,7 +87,7 @@ def get_event_web_content_from_riba(
     # Format output string
     formatted = f"""\
 Title: {event_title}
-Category: {event_category}
+Event Type: {event_type}
 Intro: {event_intro}
 Date: {event_details.get("date")}
 Place: {event_details.get("place")}
@@ -96,4 +95,4 @@ Contact: {event_details.get("contact")}
 Cost: {event_details.get("cost")}
 Description: {event_description}"""
 
-    return event_title, formatted
+    return formatted

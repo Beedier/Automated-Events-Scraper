@@ -37,7 +37,7 @@ def extract_event_details_from_bco_ul(ul_block: Tag) -> dict:
 def get_event_web_content_from_bco_org(
     event_url: str,
     chromedriver: WebDriver
-) -> tuple[str, str]:
+) -> str:
     """
     Loads a BCO.org.uk event detail page, extracts and formats event data.
 
@@ -46,7 +46,7 @@ def get_event_web_content_from_bco_org(
         chromedriver (WebDriver): Selenium WebDriver instance.
 
     Returns:
-        tuple[str, str, str | None]: A formatted string with event details, and the detected event category.
+        str: A formatted string with event details, and the detected event category.
     """
     chromedriver.get(event_url)
 
@@ -87,4 +87,4 @@ def get_event_web_content_from_bco_org(
 
     # Append description last
     formatted += f"\nDescription:\n\t{event_description}"
-    return event_title, formatted
+    return formatted
