@@ -28,24 +28,24 @@ class Event(Base):
     website_name = Column(String, nullable=False, index=True)
 
     # Raw and processed content fields
-    category = Column(String, nullable=True)
-    web_content = Column(Text, nullable=True)
-    title = Column(Text, nullable=True)
-    index_intro = Column(Text, nullable=True)
-    intro = Column(Text, nullable=True)
-    content = Column(Text, nullable=True)
+    category = Column(String, nullable=True, default=None)
+    web_content = Column(Text, nullable=True, default=None)
+    title = Column(Text, nullable=True, default=None)
+    index_intro = Column(Text, nullable=True, default=None)
+    intro = Column(Text, nullable=True, default=None)
+    content = Column(Text, nullable=True, default=None)
 
     # Dates (original and sortable) and location
-    dates = Column(String, nullable=True)
-    date_order = Column(String(8), nullable=True)  # e.g., YYYYMMDD
-    location = Column(String, nullable=True)
-    cost = Column(String, nullable=True)
+    dates = Column(String, nullable=True, default=None)
+    date_order = Column(String(8), nullable=True, default=None)  # e.g., YYYYMMDD
+    location = Column(String, nullable=True, default=None)
+    cost = Column(String, nullable=True, default=None)
 
     # Whether the content was AI-generated or not
     generated_content = Column(Boolean, nullable=False, default=False)
 
     # Remote system tracking
-    remote_event_id = Column(Integer, nullable=True, index=True)
+    remote_event_id = Column(Integer, nullable=True, index=True, default=None)
     publish_status = Column(
         Enum(PublishStatusEnum, name="publish_status_enum"),
         nullable=False,
@@ -76,13 +76,13 @@ class Image(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
 
     # Optional reference to external image (e.g., Beed.ier)
-    remote_media_id = Column(Integer, nullable=True)
+    remote_media_id = Column(Integer, nullable=True, default=None)
 
     # Image URL (must be unique)
     image_url = Column(String, unique=True, nullable=False)
 
     # Local Path
-    image_path = Column(String, nullable=True)
+    image_path = Column(String, nullable=True, default=None)
 
     # Timestamps
     updated_at = Column(DateTime, onupdate=func.now())
