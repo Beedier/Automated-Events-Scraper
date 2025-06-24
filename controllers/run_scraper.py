@@ -1,6 +1,7 @@
 from selenium_webdriver import get_selenium_chrome_driver
 from dbcore import create_event, get_config
 from .get_scrapers import get_scraper_function
+from .get_all_targets import get_all_targets
 
 env_config = get_config()
 
@@ -26,13 +27,3 @@ def run_scraper(category: str, target: str):
                 website_name=data.get("website_name"),
                 image_url=event.get("image_url")
             )
-
-def get_all_targets():
-    # Returns all valid (category, target) pairs
-    return [
-        ("event-url", "riba"),
-        ("event-url", "nla-london"),
-        ("event-url", "bco-org"),
-        ("event-url", "event-bright"),
-        # add more pairs here as needed
-    ]
