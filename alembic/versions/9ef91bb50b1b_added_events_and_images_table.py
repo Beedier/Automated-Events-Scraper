@@ -1,8 +1,8 @@
-"""create events and images table
+"""Added events and images table
 
-Revision ID: 0804cf1c1c36
-Revises: 88555c90b808
-Create Date: 2025-06-21 13:00:51.542843
+Revision ID: 9ef91bb50b1b
+Revises: 
+Create Date: 2025-06-24 13:07:38.096474
 
 """
 from typing import Sequence, Union
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '0804cf1c1c36'
-down_revision: Union[str, None] = '88555c90b808'
+revision: str = '9ef91bb50b1b'
+down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -25,6 +25,7 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('remote_media_id', sa.Integer(), nullable=True),
     sa.Column('image_url', sa.String(), nullable=False),
+    sa.Column('image_path', sa.String(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.PrimaryKeyConstraint('id'),
@@ -34,6 +35,7 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('event_url', sa.String(), nullable=False),
     sa.Column('website_name', sa.String(), nullable=False),
+    sa.Column('category', sa.String(), nullable=True),
     sa.Column('web_content', sa.Text(), nullable=True),
     sa.Column('title', sa.Text(), nullable=True),
     sa.Column('index_intro', sa.Text(), nullable=True),
@@ -45,7 +47,7 @@ def upgrade() -> None:
     sa.Column('cost', sa.String(), nullable=True),
     sa.Column('generated_content', sa.Boolean(), nullable=False),
     sa.Column('remote_event_id', sa.Integer(), nullable=True),
-    sa.Column('publish_status', sa.Enum('draft', 'published', name='publish_status_enum'), nullable=False),
+    sa.Column('publish_status', sa.Enum('unsynced', 'draft', 'published', name='publish_status_enum'), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('image_id', sa.Integer(), nullable=True),
