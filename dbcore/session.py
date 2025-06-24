@@ -10,6 +10,3 @@ db = Database(env_config.get('DATABASE'))
 
 # Expose useful things
 Base = db.Base
-get_session = db.get_session
-session_scope = db.session_scope
-# create_tables = db.create_tables
