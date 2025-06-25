@@ -15,3 +15,6 @@ chromedriver-linux64/
 
 # uv config files
 uv.lock
+
+# processed image
+images/process-image/*
