@@ -1,6 +1,5 @@
 import time
 from bs4 import BeautifulSoup
-from bs4.element import Tag
 from selenium.webdriver.ie.webdriver import WebDriver
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from selenium.webdriver.common.by import By
@@ -58,7 +57,7 @@ def extract_all_event_date_times(driver) -> str:
 def get_event_web_content_from_event_bright(
     event_url: str,
     chromedriver: WebDriver
-) -> str:
+) -> str | None:
     """
     Loads an Eventbrite event detail page, extracts and formats event data.
 
@@ -70,28 +69,30 @@ def get_event_web_content_from_event_bright(
         str: A formatted string with event details.
     """
     chromedriver.get(event_url)
-    soup = BeautifulSoup(chromedriver.page_source, "html.parser")
 
-    event_title = clean_text(extract_text_or_none(soup.select_one("h1.event-title")))
-    event_intro = clean_text(extract_text_or_none(soup.select_one("p.summary > strong")))
+    try:
+        soup = BeautifulSoup(chromedriver.page_source, "html.parser")
 
-    ticket_cost_el = soup.select_one('div[data-testid="panel-info"]')
-    ticket_cost = clean_text(ticket_cost_el.get_text()) if ticket_cost_el else "Free"
+        event_title = clean_text(extract_text_or_none(soup.select_one("h1.event-title")))
+        event_intro = clean_text(extract_text_or_none(soup.select_one("p.summary > strong")))
 
-    full_address = "Not found"
-    address_container = soup.select_one('div.location-info__address')
-    if address_container:
-        map_toggle = address_container.select_one('div.map-button-toggle')
-        if map_toggle:
-            map_toggle.decompose()
-        full_address = clean_text(address_container.get_text())
+        ticket_cost_el = soup.select_one('div[data-testid="panel-info"]')
+        ticket_cost = clean_text(ticket_cost_el.get_text()) if ticket_cost_el else "Free"
 
-    event_description_el = soup.select_one("div.eds-text--left")
-    event_description = clean_text(event_description_el.get_text()) if event_description_el else "No description."
+        full_address = "Not found"
+        address_container = soup.select_one('div.location-info__address')
+        if address_container:
+            map_toggle = address_container.select_one('div.map-button-toggle')
+            if map_toggle:
+                map_toggle.decompose()
+            full_address = clean_text(address_container.get_text())
 
-    event_date_times = extract_all_event_date_times(driver=chromedriver)
+        event_description_el = soup.select_one("div.eds-text--left")
+        event_description = clean_text(event_description_el.get_text()) if event_description_el else "No description."
 
-    return f"""\
+        event_date_times = extract_all_event_date_times(driver=chromedriver)
+
+        return f"""\
 Title: {event_title}
 Intro: {event_intro}
 Dates:
@@ -100,3 +101,6 @@ Dates:
 Location: {full_address}
 Cost: {ticket_cost}
 Description: {event_description}"""
+    except Exception as e:
+        print(e)
+        return None

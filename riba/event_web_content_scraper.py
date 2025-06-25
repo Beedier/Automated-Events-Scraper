@@ -49,7 +49,7 @@ def extract_event_details_from_list(ul_block: Tag) -> dict:
 def get_event_web_content_from_riba(
     event_url: str,
     chromedriver: WebDriver
-) -> str:
+) -> str | None:
     """
     Loads a RIBA event detail page, extracts and formats event data.
 
@@ -59,33 +59,34 @@ def get_event_web_content_from_riba(
 
     Returns:
         str: A formatted string with event details, and the detected event category.
+        None: If any error occurs during scraping or parsing.
     """
     chromedriver.get(event_url)
 
     # Accept cookie dialog if it appears
     try:
-        accept_cookies_button = WebDriverWait(chromedriver, 10).until(
+        accept_cookies_button = WebDriverWait(chromedriver, 2).until(
             ec.element_to_be_clickable((By.ID, "CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll"))
         )
         accept_cookies_button.click()
     except TimeoutException:
         pass
+    try:
+        soup = BeautifulSoup(chromedriver.page_source, "html.parser")
 
-    soup = BeautifulSoup(chromedriver.page_source, "html.parser")
+        # Extract core elements
+        event_type = clean_text(extract_text_or_none(soup.select_one("span.call-to-action-hero__tag")))
+        event_title = clean_text(extract_text_or_none(soup.select_one("h1.call-to-action-hero__title")))
+        event_intro = clean_text(extract_text_or_none(soup.select_one("p.call-to-action-hero__intro")))
+        event_description = extract_text_or_none(soup.select_one("article.rich-text"))
 
-    # Extract core elements
-    event_type = clean_text(extract_text_or_none(soup.select_one("span.call-to-action-hero__tag")))
-    event_title = clean_text(extract_text_or_none(soup.select_one("h1.call-to-action-hero__title")))
-    event_intro = clean_text(extract_text_or_none(soup.select_one("p.call-to-action-hero__intro")))
-    event_description = extract_text_or_none(soup.select_one("article.rich-text"))
+        # Parse list-based event metadata
+        ul = soup.select_one("ul.call-to-action-hero__list")
+        raw_details = extract_event_details_from_list(ul) if ul else {}
+        event_details = {k: clean_text(v) for k, v in raw_details.items()}
 
-    # Parse list-based event metadata
-    ul = soup.select_one("ul.call-to-action-hero__list")
-    raw_details = extract_event_details_from_list(ul) if ul else {}
-    event_details = {k: clean_text(v) for k, v in raw_details.items()}
-
-    # Format output string
-    formatted = f"""\
+        # Format output string
+        formatted = f"""\
 Title: {event_title}
 Event Type: {event_type}
 Intro: {event_intro}
@@ -95,4 +96,7 @@ Contact: {event_details.get("contact")}
 Cost: {event_details.get("cost")}
 Description: {event_description}"""
 
-    return formatted
+        return formatted
+    except Exception as e:
+        print(e)
+        return None
