@@ -3,9 +3,11 @@ from dbcore import create_event, get_config
 from .get_scrapers import get_scraper_function
 from .get_all_targets import get_all_targets
 from dbcore import fetch_events_without_web_content, fetch_events_by_website
-from dbcore import fetch_events_without_image_path
+from dbcore import fetch_events_with_web_content, fetch_events_with_non_generated_content
+from dbcore import fetch_events_without_image_path, set_event_generated_content
 from dbcore import set_event_web_content, set_processed_image_path
-from library import ImageProcessor
+from library import ImageProcessor, parse_json_to_dict
+from gemini_ai import create_prompt, generate_text_with_gemini
 
 env_config = get_config()
 
@@ -26,13 +28,13 @@ def run_scraper(category: str, target: str, include_existing: bool = False):
     else:
         targets = [target]
 
-    # Initialize Selenium Chrome driver once for all targets
-    chromedriver = get_selenium_chrome_driver(
-        headless=False,
-        chromedriver_path=env_config.get("CHROMEDRIVER_PATH")
-    )
-
     if category == 'event-url':
+        # Initialize Selenium Chrome driver once for all targets
+        chromedriver = get_selenium_chrome_driver(
+            headless=False,
+            chromedriver_path=env_config.get("CHROMEDRIVER_PATH")
+        )
+
         for tgt in targets:
             print(f"Scraping: {category} {tgt}")
             scraper_func = get_scraper_function(category, tgt)
@@ -47,6 +49,12 @@ def run_scraper(category: str, target: str, include_existing: bool = False):
                 )
 
     elif category == 'event-web-content':
+        # Initialize Selenium Chrome driver once for all targets
+        chromedriver = get_selenium_chrome_driver(
+            headless=False,
+            chromedriver_path=env_config.get("CHROMEDRIVER_PATH")
+        )
+
         for tgt in targets:
             print(f"Scraping: {category} {tgt}")
             scraper_func = get_scraper_function(category, tgt)
@@ -123,6 +131,47 @@ def run_scraper(category: str, target: str, include_existing: bool = False):
                     )
                 else:
                     print("Update Error")
+
+    elif category == 'generate-content':
+
+        for tgt in targets:
+            print(f"Generating Content: {category} {tgt}")
+
+            # Fetch events either with or without web content depending on flag
+            if include_existing:
+                events = fetch_events_with_web_content(website_name=tgt)
+            else:
+                events = fetch_events_with_non_generated_content(website_name=tgt)
+
+            for event in events:
+                prompt = create_prompt(input_text=event.web_content)
+
+                raw_response = generate_text_with_gemini(
+                    api_key=env_config.get("GEMINI_API_KEY"),
+                    prompt=prompt
+                )
+
+                parsed_data = parse_json_to_dict(json_data=raw_response)
+
+                if parsed_data:
+                    has_updated = set_event_generated_content(
+                        event_id=event.id,
+                        category=parsed_data.get("Category"),
+                        title=parsed_data.get("Title"),
+                        index_intro=parsed_data.get("IndexIntro"),
+                        intro=parsed_data.get("Intro"),
+                        content=parsed_data.get("Content"),
+                        dates=parsed_data.get("Dates"),
+                        date_order=parsed_data.get("DateOrder"),
+                        location=parsed_data.get("Location"),
+                        cost=parsed_data.get("Cost")
+                    )
+
+                    if has_updated:
+                        print(
+                            f"ID: {event.id}, Event Updated. Title: {parsed_data.get('Title')}"
+                        )
+
     else:
         # Category not recognized, no operation
         pass
