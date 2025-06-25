@@ -71,3 +71,48 @@ def fetch_events_without_image_path(website_name: str):
             .order_by(Event.id)
             .all()
         )
+
+def fetch_events_with_web_content(website_name: str):
+    """
+    Retrieve all events for a given website that already have non-empty web content.
+
+    Args:
+        website_name (str): The name of the website to filter events by.
+
+    Returns:
+        List[Event]: A list of Event objects with non-null web_content.
+    """
+    with db_instance.session_scope() as session:
+        return (
+            session.query(Event)
+            .filter_by(website_name=website_name)
+            .filter(Event.web_content.isnot(None))
+            .order_by(Event.id)
+            .all()
+        )
+
+
+def fetch_events_with_non_generated_content(website_name: str):
+    """
+    Retrieve events for a given website that:
+    - have non-null web content, and
+    - the content was not auto-generated (i.e., generated_content is False)
+
+    Args:
+        website_name (str): The name of the website to filter events by.
+
+    Returns:
+        List[Event]: Events with manually written or verified web content.
+    """
+    with db_instance.session_scope() as session:
+        return (
+            session.query(Event)
+            .options(joinedload(Event.image))  # Eager load the image relationship
+            .filter_by(website_name=website_name)
+            .filter(
+                (Event.generated_content.is_(False)) &
+                (Event.web_content.isnot(None))
+            )
+            .order_by(Event.id)
+            .all()
+        )

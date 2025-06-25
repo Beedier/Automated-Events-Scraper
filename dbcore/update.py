@@ -2,7 +2,7 @@ import logging
 from .create import _error_id
 from sqlalchemy.exc import SQLAlchemyError
 from .session import db as db_instance
-from .models import Event
+from .models import Event, PublishStatusEnum
 
 
 logger = logging.getLogger(__name__)
@@ -68,4 +68,68 @@ def set_processed_image_path(event_id: int, image_path: str) -> bool:
     except SQLAlchemyError as e:
         err_id = _error_id(e)
         logger.error(f"Failed to update image path for Event ID {event_id} (Error ID: {err_id})")
+        return False
+
+
+def set_event_generated_content(
+    event_id: int,
+    category: str = None,
+    title: str = None,
+    index_intro: str = None,
+    intro: str = None,
+    content: str = None,
+    dates: str = None,
+    date_order: str = None,
+    location: str = None,
+    cost: str = None,
+    generated_content: bool = True,
+    publish_status: PublishStatusEnum = PublishStatusEnum.unsynced
+) -> bool:
+    """
+    Set all content-related fields of an event, even if values are None.
+
+    Args:
+        event_id (int): ID of the event to update.
+        category (str): Category label.
+        title (str): Title of the event.
+        index_intro (str): Short intro for indexing.
+        intro (str): Full intro paragraph.
+        content (str): Main event content.
+        dates (str): Human-readable date range.
+        date_order (str): Sortable final date in YYYYMMDD.
+        location (str): Event location.
+        cost (str): Event cost.
+        generated_content (bool): Whether the content is AI-generated.
+        publish_status (PublishStatusEnum): Current publishing status.
+
+    Returns:
+        bool: True if update succeeds, False if event not found or on DB error.
+    """
+    try:
+        with db_instance.session_scope() as session:
+            event = session.query(Event).filter_by(id=event_id).first()
+            if not event:
+                logger.warning(f"Event not found. Event ID: {event_id}")
+                return False
+
+            # Assign all values, even if None
+            event.category = category
+            event.title = title
+            event.index_intro = index_intro
+            event.intro = intro
+            event.content = content
+            event.dates = dates
+            event.date_order = date_order
+            event.location = location
+            event.cost = cost
+            event.generated_content = generated_content
+            event.publish_status = publish_status
+
+            session.add(event)
+            logger.info(f"Event updated. ID: {event.id}, Generated: {generated_content}")
+            return True
+
+    except SQLAlchemyError as e:
+        err_id = _error_id(e)
+        logger.error(f"Failed to update event content for Event ID {event_id} (Error ID: {err_id})")
         return False
