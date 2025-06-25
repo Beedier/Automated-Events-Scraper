@@ -1,8 +1,9 @@
 import logging
 from .create import _error_id
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import joinedload
 from .session import db as db_instance
-from .models import Event
+from .models import Event, Image
 
 
 logger = logging.getLogger(__name__)
@@ -54,3 +55,19 @@ def fetch_events_by_website(website_name: str) -> list[Event]:
         err_id = _error_id(e)
         logger.error(f"Failed to fetch events for website '{website_name}' (ID: {err_id})")
         return []
+
+
+def fetch_events_without_image_path(website_name: str):
+    """
+    Retrieve all events for a website where the associated image has no image_path.
+    """
+    with db_instance.session_scope() as session:
+        return (
+            session.query(Event)
+            .join(Event.image)
+            .options(joinedload(Event.image))
+            .filter(Event.website_name == website_name)
+            .filter(Image.image_path == None)  # noqa: E711
+            .order_by(Event.id)
+            .all()
+        )

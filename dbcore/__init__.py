@@ -5,6 +5,8 @@ from .models import Event, Image
 from .create import create_event
 
 from .update import set_event_web_content
+from .update import set_processed_image_path
 
 from .get import fetch_events_by_website
 from .get import fetch_events_without_web_content
+from .get import fetch_events_without_image_path
