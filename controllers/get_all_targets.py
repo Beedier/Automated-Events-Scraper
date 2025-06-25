@@ -15,5 +15,10 @@ def get_all_targets():
         ("process-image", "nla"),
         ("process-image", "bco-org"),
         ("process-image", "event-bright"),
+
+        ("generate-content", "riba"),
+        ("generate-content", "nla"),
+        ("generate-content", "bco-org"),
+        ("generate-content", "event-bright"),
         # add more pairs here as needed
     ]
