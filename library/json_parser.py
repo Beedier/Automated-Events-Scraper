@@ -10,19 +10,20 @@ def parse_json_to_dict(json_data):
     - Handles unescaped backslashes cautiously
     - Returns a valid Python dictionary or raises JSONDecodeError if invalid
     """
-    # Remove markdown-style code block wrappers
-    cleaned = re.sub(r'^```(?:json)?\s*|\s*```$', '', json_data.strip(), flags=re.IGNORECASE)
-
-    # Normalize newlines to spaces
-    cleaned = re.sub(r'[\r\n]+', ' ', cleaned)
-
-    # Carefully escape unescaped backslashes that aren't part of valid sequences
-    # Valid sequences: \", \\, \/, \b, \f, \n, \r, \t, \uXXXX
-    cleaned = re.sub(r'(?<!\\)\\(?!["\\/bfnrtu])', r'\\\\', cleaned)
-
+    cleaned = None
     try:
+        # Remove markdown-style code block wrappers
+        cleaned = re.sub(r'^```(?:json)?\s*|\s*```$', '', json_data.strip(), flags=re.IGNORECASE)
+
+        # Normalize newlines to spaces
+        cleaned = re.sub(r'[\r\n]+', ' ', cleaned)
+
+        # Carefully escape unescaped backslashes that aren't part of valid sequences
+        # Valid sequences: \", \\, \/, \b, \f, \n, \r, \t, \uXXXX
+        cleaned = re.sub(r'(?<!\\)\\(?!["\\/bfnrtu])', r'\\\\', cleaned)
+
         return json.loads(cleaned)
-    except json.JSONDecodeError as e:
+    except (json.JSONDecodeError, AttributeError) as e:
         # Optional: print debug info or raise the error
         print(f"Failed to decode JSON: {e}")
         print("Cleaned JSON string:", repr(cleaned))
