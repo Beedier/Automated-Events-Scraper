@@ -44,6 +44,16 @@ class TestImageProcessor(unittest.TestCase):
             processor = ImageProcessor(image_path=TEST_IMAGE_PATH)
             processor.process(overlay_path="invalid_overlay.png", save_dir=TEST_OUTPUT_DIR)
 
+    def test_processing_without_overlay_save(self):
+        processor = ImageProcessor(image_path=TEST_IMAGE_PATH)
+        result_path = processor.process(save_dir=TEST_OUTPUT_DIR)
+        self.assertTrue(os.path.exists(result_path))
+
+    def test_processing_without_overlay_return_image(self):
+        processor = ImageProcessor(image_path=TEST_IMAGE_PATH)
+        img = processor.process(return_image=True)
+        self.assertIsInstance(img, Image.Image)
+
     def test_non_image_file_url(self):
         with self.assertRaises(IOError):
             processor = ImageProcessor(image_url="https://example.com")

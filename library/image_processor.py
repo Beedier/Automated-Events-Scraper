@@ -54,16 +54,16 @@ class ImageProcessor:
         self.image = _load_image(image_url, image_path)
 
     def process(
-        self,
-        overlay_path: str,
-        save_dir: str = None,
-        return_image: bool = False
+            self,
+            overlay_path: str = None,
+            save_dir: str = None,
+            return_image: bool = False
     ) -> str or Image.Image:
         """
-        Center-crops the base image, overlays another image, and either saves or returns it.
+        Center-crops the base image, overlays another image if provided, and either saves or returns it.
 
         Parameters:
-            overlay_path (str): Path to the overlay image (should support transparency).
+            overlay_path (str, optional): Path to the overlay image.
             save_dir (str, optional): Directory to save the processed image. Required if return_image is False.
             return_image (bool): If True, returns the PIL Image object instead of saving it.
 
@@ -71,13 +71,9 @@ class ImageProcessor:
             str or Image.Image: Path to saved image or Image object.
 
         Raises:
-            ValueError: If overlay_path is missing or save_dir is missing when return_image is False.
+            ValueError: If save_dir is missing when return_image is False.
             IOError: If image saving or overlay loading fails.
         """
-        if not overlay_path:
-            raise ValueError("Parameter 'overlay_path' is required.")
-
-        # Get dimensions and aspect ratios
         base_img = self.image
         width, height = base_img.size
         target_w, target_h = 600, 500
@@ -97,14 +93,16 @@ class ImageProcessor:
         # Crop and resize to target size
         cropped_img = base_img.crop(crop_box).resize((target_w, target_h), Image.Resampling.LANCZOS)
 
-        # Load and resize overlay image
-        try:
-            overlay_img = Image.open(overlay_path).convert("RGBA").resize((target_w, target_h), Image.Resampling.LANCZOS)
-        except Exception as e:
-            raise IOError(f"Failed to load overlay image: {e}")
-
-        # Overlay and convert to RGB
-        final_img = Image.alpha_composite(cropped_img, overlay_img).convert("RGB")
+        # Apply overlay if provided
+        if overlay_path:
+            try:
+                overlay_img = Image.open(overlay_path).convert("RGBA").resize((target_w, target_h),
+                                                                              Image.Resampling.LANCZOS)
+                final_img = Image.alpha_composite(cropped_img, overlay_img).convert("RGB")
+            except Exception as e:
+                raise IOError(f"Failed to load overlay image: {e}")
+        else:
+            final_img = cropped_img.convert("RGB")
 
         if return_image:
             return final_img
