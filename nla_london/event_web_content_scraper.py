@@ -30,14 +30,14 @@ def get_event_web_content_from_nla_london(
         event_details = clean_text(soup.select_one("div.cell.tablet-4.large-3").get_text()) if soup.select_one("div.cell.tablet-4.large-3") else None
 
         formatted = f"""
-Title: {event_title}
-Event Type: {event_type}
-Date and Time: {event_date_time}
+Title: {event_title if event_title else ""}
+Event Type: {event_type if event_type else ""}
+Date and Time: {event_date_time if event_date_time else ""}
 Event Details: 
-{event_details}
+{event_details if event_details else ""}
     
 Description: 
-{event_description}
+{event_description if event_description else ""}
 """.strip()
 
         return formatted

@@ -79,7 +79,7 @@ def get_event_web_content_from_event_bright(
         ticket_cost_el = soup.select_one('div[data-testid="panel-info"]')
         ticket_cost = clean_text(ticket_cost_el.get_text()) if ticket_cost_el else "Free"
 
-        full_address = "Not found"
+        full_address = ""
         address_container = soup.select_one('div.location-info__address')
         if address_container:
             map_toggle = address_container.select_one('div.map-button-toggle')
@@ -88,13 +88,13 @@ def get_event_web_content_from_event_bright(
             full_address = clean_text(address_container.get_text())
 
         event_description_el = soup.select_one("div.eds-text--left")
-        event_description = clean_text(event_description_el.get_text()) if event_description_el else "No description."
+        event_description = clean_text(event_description_el.get_text()) if event_description_el else ""
 
         event_date_times = extract_all_event_date_times(driver=chromedriver)
 
         return f"""\
-Title: {event_title}
-Intro: {event_intro}
+Title: {event_title if event_title else ""}
+Short Description: {event_intro if event_intro else ""}
 Dates:
 {event_date_times.strip()}
 

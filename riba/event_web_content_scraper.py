@@ -87,14 +87,14 @@ def get_event_web_content_from_riba(
 
         # Format output string
         formatted = f"""\
-Title: {event_title}
-Event Type: {event_type}
-Intro: {event_intro}
-Date: {event_details.get("date")}
-Place: {event_details.get("place")}
-Contact: {event_details.get("contact")}
-Cost: {event_details.get("cost")}
-Description: {event_description}"""
+Title: {event_title if event_title else ""}
+Event Type: {event_type if event_type else ""}
+Short Description: {event_intro if event_intro else ""}
+Date: {event_details.get("date") if event_details.get("date") is not None else ""}
+Place: {event_details.get("place") if event_details.get("place") is not None else ""}
+Contact: {event_details.get("contact") if event_details.get("contact") is not None else ""}
+Cost: {event_details.get("cost") if event_details.get("cost") is not None else ""}
+Description: {event_description if event_description else ""}"""
 
         return formatted
     except Exception as e:

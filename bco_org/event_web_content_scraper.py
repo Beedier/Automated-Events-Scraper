@@ -80,14 +80,14 @@ def get_event_web_content_from_bco_org(
             extra_lines.append(f"{clean_key}: {v}")
 
         # Format final output
-        formatted = f"Title: {event_title}"
+        formatted = f"Title: {event_title if event_title else ''}"
 
         # Append extra unknown keys
         if extra_lines:
             formatted += "\n" + "\n".join(extra_lines)
 
         # Append description last
-        formatted += f"\nDescription:\n\t{event_description}"
+        formatted += f"\nDescription:\n\t{event_description if event_description else ''}"
         return formatted
     except Exception as e:
         print(e)
