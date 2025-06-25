@@ -3,7 +3,9 @@ from dbcore import create_event, get_config
 from .get_scrapers import get_scraper_function
 from .get_all_targets import get_all_targets
 from dbcore import fetch_events_without_web_content, fetch_events_by_website
-from dbcore import set_event_web_content
+from dbcore import fetch_events_without_image_path
+from dbcore import set_event_web_content, set_processed_image_path
+from library import ImageProcessor
 
 env_config = get_config()
 
@@ -72,6 +74,55 @@ def run_scraper(category: str, target: str, include_existing: bool = False):
                     print(f"Event ID: {event.id}, Web content updated and set generated content false.")
                 else:
                     print(f"Event ID: {event.id}, set web content null and set generated content false.")
+    elif category == 'process-image':
+        # Static config for each target
+        target_config = {
+            "riba": {
+                "overlay_path": "images/overlay/RIBA_logo.png",
+                "save_dir": "images/process-image/riba"
+            },
+            "nla": {
+                "overlay_path": "images/overlay/NLA_logo.png",
+                "save_dir": "images/process-image/nla"
+            },
+            "bco-org": {
+                "overlay_path": "images/overlay/BCO_logo.png",
+                "save_dir": "images/process-image/bco-org"
+            },
+            "event-bright": {
+                # "overlay_path": "images/overlay/EVENTBRITE_logo.png",
+                "overlay_path": None,
+                "save_dir": "images/process-image/event-bright"
+            }
+        }
+
+        for tgt in targets:
+            print(f"Processing: {category} {tgt}")
+
+            # Fetch events without images depending on flag
+            events = fetch_events_without_image_path(website_name=tgt)
+
+            for event in events:
+                image_processor = ImageProcessor(
+                    image_url=event.image.image_url
+                )
+
+                processed_image_path = image_processor.process(
+                    overlay_path=target_config[tgt].get('overlay_path'),
+                    save_dir=target_config[tgt].get('save_dir')
+                )
+
+                has_updated = set_processed_image_path(
+                    event_id=event.id,
+                    image_path=processed_image_path
+                )
+
+                if has_updated:
+                    print(
+                        f"Updated image path. Event ID: {event.id}, Image ID: {event.image.id}."
+                    )
+                else:
+                    print("Update Error")
     else:
         # Category not recognized, no operation
         pass
