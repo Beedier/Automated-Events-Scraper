@@ -9,50 +9,66 @@ def create_prompt(input_text: str):
         str: The formatted prompt.
     """
     return f"""
-You are a professional content editor and SEO expert. Read the following event description and rewrite it to be persuasive, SEO-optimised, and conversational for a general audience. Return a JSON object with the following fields:
+You are a professional content editor and SEO expert. Read the following event description and rewrite it to be persuasive, SEO-optimised, and conversational for a general audience. Return a JSON object with the following exact fields:
 
-1. "Title": Event name (plain text - exactly as it is referenced in the source, but using colon+space as dividing syntax when one is required - to replace dashes, vertical lines and other syntax)
+1. "Title": Event name (plain text - exactly as it is referenced in the source, but use colon+space as the divider instead of dashes, vertical bars, or other syntax). Do not generate your own title. If the title is not found, return null. **If the title is "None" or "", then all other fields must also be returned as null.**
 
 2. "Dates": Return all event dates in a compact, human-readable, single-line string. Follow these format rules:
-- If dates do not include a year (e.g. "Saturday, 7 Jun"), assume the current year: "7 Jun 2025"
-- Use "DD MM YYYY, HH:MM–HH:MM" for a single event.
-- For a range, use "DD–DD MM YYYY, HH:MM–HH:MM"
+- If dates omit the year (e.g. "Saturday, 7 Jun"), assume current year: "7 Jun 2025"
+- Use "DD MM YYYY, HH:MM–HH:MM" for a single event
+- For a range: "DD–DD MM YYYY, HH:MM–HH:MM"
 - Multiple dates, same month/year: "12, 18, 26 Jun 2025, HH:MM–HH:MM"
-- Multiple months, same year: "26 Jun, 24 Jul, 25 Sep 2025, HH:MM–HH:MM"
+- Across months: "26 Jun, 24 Jul, 25 Sep 2025, HH:MM–HH:MM"
 - Different times: "26 Jun, 10:00–12:00; 24 Jul, 14:00–16:00; 2025"
 - Different years: "27 Jun 2025, 10:00–12:00; 24 Jul 2026, 14:00–16:00"
 - Flexible/online-only: "Jun 2025" or "26–28 Jun 2025"
-- Times must be 24-hour format
+- Use 24-hour time format
 - No lists, arrays, or line breaks
 
-3. "IndexIntro": A 1–2 sentence summary of the event (don’t repeat the title). Add the formatted event date at the end. Use one of these formats:
-- Single day: "26 June 2025"
+3. "IndexIntro": A 1–2 sentence summary of the event (do not repeat the title). Append the formatted event date at the end in one of these forms:
+- Single-day: "26 June 2025"
 - Multi-day: "26–28 June 2025"
 - Spanning months: "26 June–4 July 2025"
 
-4. "Intro": Same as IndexIntro, but omit the date
+4. "Intro": Same as IndexIntro but omit the date.
 
-5. "Content": A ~200-word SEO-friendly event description including value, themes, and outcomes. Conversational and persuasive in tone.
+5. "Content": A ~200-word SEO-optimised event description. It must be persuasive, conversational, and informative—covering value, themes, and expected outcomes. Paragraphs allowed.
 
-6. "DateOrder": The last event date in "YYYYMMDD" format.
-- For single-day events, use that date.
-- For multi-day or scattered events, return the final occurring date.
-- For flexible/month-only events, assume the last day of the mentioned month.
+6. "DateOrder": Last occurring event date in "YYYYMMDD" format.
+- Use final date for multi-day or scattered events.
+- For flexible or month-only events, use the last day of the mentioned month.
+- Use the same day for single-date events.
 
-7. "Location": Format as "Venue Name, Address, City, Country". If hybrid, append "and online".
+7. "Location": Format as "Venue Name, Address, City, Country". If hybrid or online, append "and online".
 
-8. "Cost": Return pricing details (all tiers if applicable) or "Free"
+8. "Cost": Include pricing details (all tiers if available) or "Free".
 
-9. "Category": One or more relevant categories (comma-separated, one line) selected based on the event’s themes and value. Use this guidance:
-- "Conferences and Networking Events" → if event is about industry conferences, networking socials, places to meet clients and collaborators.
-- "Education, Training and CPD" → if focus is on seminars for exchanging knowledge, CPD accredited training events, day courses, academic conferences, creative workshops.
-- "Cultural Events and Exhibitions" → if focus is on design festivals, talks by architects, walking tours, architectural films, exhibitions, talks and lectures.
+9. "Category": Choose one or more from the below, comma-separated:
+- "Conferences and Networking Events" → for industry conferences, networking socials, business meetups
+- "Education, Training and CPD" → for seminars, CPD-accredited events, workshops, courses
+- "Cultural Events and Exhibitions" → for festivals, exhibitions, film screenings, guided tours, talks
 
-Constraints:
-- All fields must be strings. Only "Content" can include paragraphs.
-- No markdown, no bullet points, no extra commentary.
-- Output must be valid JSON.
+**Strict rules:**
+- All fields must be returned as JSON strings. Only the "Content" field may include line breaks.
+- Only "Category" may be returned as null if no suitable match is found. All other fields are strictly required.
+- If either "Title" or "Dates" is null, then all fields must be returned as null (except "Category", which may still be null as per normal rules).
+- If the event appears expired, ended, or clearly sold out, then return all fields as null.
+- Do not output markdown, bullet points, or any commentary.
+- Final output must be a valid JSON object using null (not the string "null") where applicable.
 
 **Event context:**
 {input_text}
+
+**Example JSON Output:**
+{{
+  "Title": "Design Futures: Exploring Tomorrow’s Spaces",
+  "Dates": "12, 18, 26 Jun 2025, 10:00–17:00",
+  "IndexIntro": "Join thought leaders in design and architecture as they discuss the future of spaces and sustainability. 12, 18, 26 June 2025",
+  "Intro": "Join thought leaders in design and architecture as they discuss the future of spaces and sustainability.",
+  "Content": "generated content",
+  "DateOrder": "20250626",
+  "Location": "RIBA, 66 Portland Place, London, UK",
+  "Cost": "£120 standard, £60 students",
+  "Category": "Conferences and Networking Events, Education, Training and CPD"
+}}
     """
