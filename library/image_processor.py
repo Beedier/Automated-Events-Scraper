@@ -5,6 +5,32 @@ import requests
 from PIL import Image
 
 
+def _load_image(url: str, path: str) -> Image.Image:
+    """
+    Loads an image from a URL or local file path.
+
+    Parameters:
+        url (str): Image URL.
+        path (str): Local file path.
+
+    Returns:
+        Image.Image: PIL Image object.
+
+    Raises:
+        IOError: If loading or downloading fails.
+    """
+    try:
+        if url:
+            headers = {'User-Agent': 'Mozilla/5.0'}
+            response = requests.get(url, headers=headers, timeout=10)
+            response.raise_for_status()
+            return Image.open(io.BytesIO(response.content)).convert("RGBA")
+        else:
+            return Image.open(path).convert("RGBA")
+    except Exception as e:
+        raise IOError(f"Failed to load image: {e}")
+
+
 class ImageProcessor:
     """
     A utility class to download or load an image, center-crop it,
@@ -25,32 +51,7 @@ class ImageProcessor:
         """
         if not image_url and not image_path:
             raise ValueError("Either 'image_url' or 'image_path' must be provided.")
-        self.image = self._load_image(image_url, image_path)
-
-    def _load_image(self, url: str, path: str) -> Image.Image:
-        """
-        Loads an image from a URL or local file path.
-
-        Parameters:
-            url (str): Image URL.
-            path (str): Local file path.
-
-        Returns:
-            Image.Image: PIL Image object.
-
-        Raises:
-            IOError: If loading or downloading fails.
-        """
-        try:
-            if url:
-                headers = {'User-Agent': 'Mozilla/5.0'}
-                response = requests.get(url, headers=headers, timeout=10)
-                response.raise_for_status()
-                return Image.open(io.BytesIO(response.content)).convert("RGBA")
-            else:
-                return Image.open(path).convert("RGBA")
-        except Exception as e:
-            raise IOError(f"Failed to load image: {e}")
+        self.image = _load_image(image_url, image_path)
 
     def process(
         self,
