@@ -11,7 +11,7 @@ from selenium.webdriver.support import expected_conditions as ec
 def get_event_urls_from_bco_org(
     chromedriver: WebDriver,
     base_page_url: str = "https://www.bco.org.uk/events",
-    max_months: int = 12
+    max_months: int = 6
 ) -> dict:
     """
     Scrapes event URLs and image URLs from the British Council for Offices (BCO) events page.
