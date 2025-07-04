@@ -79,15 +79,24 @@ def get_event_web_content_from_bco_org(
             clean_key = k.replace("_", " ").rstrip("_").title()
             extra_lines.append(f"{clean_key}: {v}")
 
-        # Format final output
-        formatted = f"Title: {event_title if event_title else ''}"
 
-        # Append extra unknown keys
+        formatted = str()
+
+        if event_title:
+            # Start with Title line (empty if no title)
+            formatted += f"Title: {event_title}\\n"
+        else:
+            return None
+
+        # Append extra lines if present, joined with literal \n
         if extra_lines:
-            formatted += "\n" + "\n".join(extra_lines)
+            formatted += "\\n" + "\\n".join(extra_lines)
 
-        # Append description last
-        formatted += f"\nDescription:\n\t{event_description if event_description else ''}"
+        # Append description last, escaping newlines and tabs with literal \n and \t
+        if event_description:
+            escaped_description = event_description.replace('\n', '\\n').replace('\t', '\\t').replace('\r', '')
+            formatted += f"\\nDescription:\\n\\t{escaped_description}"
+
         return formatted
     except Exception as e:
         print(e)

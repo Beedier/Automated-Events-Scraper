@@ -29,16 +29,27 @@ def get_event_web_content_from_nla_london(
         event_description = clean_text(soup.select_one("div.cell.tablet-8.large-9").get_text()) if soup.select_one("div.cell.tablet-8.large-9") else None
         event_details = clean_text(soup.select_one("div.cell.tablet-4.large-3").get_text()) if soup.select_one("div.cell.tablet-4.large-3") else None
 
-        formatted = f"""
-Title: {event_title if event_title else ""}
-Event Type: {event_type if event_type else ""}
-Date and Time: {event_date_time if event_date_time else ""}
-Event Details: 
-{event_details if event_details else ""}
-    
-Description: 
-{event_description if event_description else ""}
-""".strip()
+        # Format output string as single line with \n separators
+        lines = []
+
+        if event_title:
+            lines.append(f"Title: {event_title}")
+        else:
+            return None
+
+        if event_type:
+            lines.append(f"Event Type: {event_type}")
+
+        if event_date_time:
+            lines.append(f"Date-Time: {event_date_time}")
+
+        if event_details:
+            lines.append(f"Event Details: {event_details}")
+
+        if event_description:
+            lines.append(f"Description: {event_description}")
+
+        formatted = "\\n".join(lines)
 
         return formatted
     except Exception as e:

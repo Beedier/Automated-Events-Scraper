@@ -85,16 +85,30 @@ def get_event_web_content_from_riba(
         raw_details = extract_event_details_from_list(ul) if ul else {}
         event_details = {k: clean_text(v) for k, v in raw_details.items()}
 
-        # Format output string
-        formatted = f"""\
-Title: {event_title if event_title else ""}
-Event Type: {event_type if event_type else ""}
-Short Description: {event_intro if event_intro else ""}
-Date: {event_details.get("date") if event_details.get("date") is not None else ""}
-Place: {event_details.get("place") if event_details.get("place") is not None else ""}
-Contact: {event_details.get("contact") if event_details.get("contact") is not None else ""}
-Cost: {event_details.get("cost") if event_details.get("cost") is not None else ""}
-Description: {event_description if event_description else ""}"""
+        # Format output string as single line with \n separators
+        lines = []
+
+        if event_title:
+            lines.append(f"Title: {event_title}")
+        else:
+            return None
+
+        if event_type:
+            lines.append(f"Event Type: {event_type}")
+        if event_intro:
+            lines.append(f"Short Description: {event_intro}")
+        if event_details.get('date'):
+            lines.append(f"Date: {event_details['date']}")
+        if event_details.get('place'):
+            lines.append(f"Place: {event_details['place']}")
+        if event_details.get('contact'):
+            lines.append(f"Contact: {event_details['contact']}")
+        if event_details.get('cost'):
+            lines.append(f"Cost: {event_details['cost']}")
+        if event_description:
+            lines.append(f"Description: {event_description}")
+
+        formatted = "\\n".join(lines)
 
         return formatted
     except Exception as e:

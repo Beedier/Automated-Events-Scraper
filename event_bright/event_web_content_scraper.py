@@ -51,7 +51,7 @@ def extract_all_event_date_times(driver) -> str:
             print(f"Error on button {i}: {e}")
             continue
 
-    return "\n".join(date_times)
+    return "\\n".join(date_times)
 
 
 def get_event_web_content_from_event_bright(
@@ -92,15 +92,33 @@ def get_event_web_content_from_event_bright(
 
         event_date_times = extract_all_event_date_times(driver=chromedriver)
 
-        return f"""\
-Title: {event_title if event_title else ""}
-Short Description: {event_intro if event_intro else ""}
-Dates:
-{event_date_times.strip()}
+        # Format output string as single line with \n separators
+        lines = []
 
-Location: {full_address}
-Cost: {ticket_cost}
-Description: {event_description}"""
+        if event_title:
+            lines.append(f"Title: {event_title}")
+        else:
+            return None
+
+        if event_intro:
+            lines.append(f"Short Description: {event_intro}")
+
+        if full_address:
+            lines.append(f"Location: {full_address}")
+
+        if ticket_cost:
+            lines.append(f"Cost: {ticket_cost}")
+
+        if event_date_times:
+            lines.append(f"Dates: {event_date_times.strip()}")
+
+        if event_description:
+            lines.append(f"Description: {event_description}")
+
+        formatted = "\\n".join(lines)
+
+        return formatted
+
     except Exception as e:
         print(e)
         return None
