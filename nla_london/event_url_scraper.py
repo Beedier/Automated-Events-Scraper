@@ -9,7 +9,7 @@ from urllib.parse import urljoin
 from library import build_url_with_params
 
 
-def scroll_entire_page_slowly(driver: WebDriver, step: int = 100, delay: float = 0.5):
+def scroll_entire_page_slowly(driver: WebDriver, step: int = 300, delay: float = 0.5):
     height = driver.execute_script("return document.body.scrollHeight")
 
     # Scroll down slowly
