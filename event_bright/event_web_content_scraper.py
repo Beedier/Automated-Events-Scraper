@@ -71,13 +71,19 @@ def get_event_web_content_from_event_bright(
     chromedriver.get(event_url)
 
     try:
+        # wait to load whole page properly
+        time.sleep(5)
+
         soup = BeautifulSoup(chromedriver.page_source, "html.parser")
 
         event_title = clean_text(extract_text_or_none(soup.select_one("h1.event-title")))
         event_intro = clean_text(extract_text_or_none(soup.select_one("p.summary > strong")))
 
         ticket_cost_el = soup.select_one('div[data-testid="panel-info"]')
+        if not ticket_cost_el:
+            ticket_cost_el = soup.select_one('span.CondensedConversionBar-module__priceTag___3AnIu')
         ticket_cost = clean_text(ticket_cost_el.get_text()) if ticket_cost_el else "Free"
+        print(ticket_cost)
 
         full_address = ""
         address_container = soup.select_one('div.location-info__address')
