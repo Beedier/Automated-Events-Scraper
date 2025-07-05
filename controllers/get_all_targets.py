@@ -20,5 +20,40 @@ def get_all_targets():
         ("generate-content", "nla"),
         ("generate-content", "bco-org"),
         ("generate-content", "event-bright"),
+
+        ("upload-media", "riba"),
+        ("upload-media", "nla"),
+        ("upload-media", "bco-org"),
+        ("upload-media", "event-bright"),
+
+        ("create-event", "riba"),
+        ("create-event", "nla"),
+        ("create-event", "bco-org"),
+        ("create-event", "event-bright"),
+
+        ("update-event", "riba"),
+        ("update-event", "nla"),
+        ("update-event", "bco-org"),
+        ("update-event", "event-bright"),
+
+        ("update-event-category", "riba"),
+        ("update-event-category", "nla"),
+        ("update-event-category", "bco-org"),
+        ("update-event-category", "event-bright"),
+
+        ("update-event-status", "riba"),
+        ("update-event-status", "nla"),
+        ("update-event-status", "bco-org"),
+        ("update-event-status", "event-bright"),
+
+        ("delete-media", "riba"),
+        ("delete-media", "nla"),
+        ("delete-media", "bco-org"),
+        ("delete-media", "event-bright"),
+
+        ("delete-event", "riba"),
+        ("delete-event", "nla"),
+        ("delete-event", "bco-org"),
+        ("delete-event", "event-bright"),
         # add more pairs here as needed
     ]
