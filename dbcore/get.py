@@ -87,6 +87,7 @@ def fetch_images_without_image_path(website_name: str) -> list[Image]:
                 Event.website_name == website_name,
                 Image.image_path.is_(None)
             )
+            .order_by(Image.id)
             .distinct()
             .all()
         )
@@ -129,7 +130,6 @@ def fetch_events_with_non_generated_content(website_name: str) -> list[Event]:
     with db_instance.session_scope() as session:
         return (
             session.query(Event)
-            .options(joinedload(Event.image))  # Eager load the image relationship
             .filter(
                 Event.website_name == website_name,
                 Event.generated_content.is_(False),
@@ -153,6 +153,7 @@ def fetch_images_without_remote_media_id(website_name: str) -> list[Image]:
                 Event.generated_content.is_(True),
                 Image.remote_media_id.is_(None)
             )
+            .order_by(Image.id)
             .distinct()
             .all()
         )
@@ -166,13 +167,15 @@ def fetch_events_without_remote_event_id(website_name: str) -> list[Event]:
         return (
             session.query(Event)
             .join(Event.image)
+            .options(joinedload(Event.image))
             .filter(
                 Event.website_name == website_name,
+                Event.remote_event_id.is_(None),  # ✅ missing condition added
                 Event.generated_content.is_(True),
                 Event.title.isnot(None),
                 Event.intro.isnot(None),
                 Event.index_intro.isnot(None),
-                Event.image.remote_media_id.isnot(None),
+                Image.remote_media_id.isnot(None),
                 Event.location.isnot(None),
                 Event.dates.isnot(None),
                 Event.date_order.isnot(None),
