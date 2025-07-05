@@ -43,15 +43,15 @@ You are a professional content editor and SEO expert. Read the following event d
 
 8. "Cost": Include pricing details (all tiers if available) or "Free".
 
-9. "Category": Choose one or more from the below, comma-separated:
-- "Conferences and Networking Events" → for industry conferences, networking socials, business meetups
-- "Education, Training and CPD" → for seminars, CPD-accredited events, workshops, courses
-- "Cultural Events and Exhibitions" → for festivals, exhibitions, film screenings, guided tours, talks
+9. "Categories": Choose one or more from the below, in a json list:
+- "Conferences and Networking Events" → for industry conferences, networking socials, places to meet clients and collaborators
+- "Education, Training and CPD" → seminars for exchanging knowledge, CPD accredited training events, day courses, academic conferences, creative workshops.
+- "Cultural Events and Exhibitions" → design festivals, talks by architects, walking tours, architectural films, exhibitions.
 
 **Strict rules:**
-- All fields must be returned as JSON strings. Only the "Content" field may include line breaks.
-- Only "Category" may be returned as null if no suitable match is found. All other fields are strictly required.
-- If either "Title" or "Dates" is null, then all fields must be returned as null (except "Category", which may still be null as per normal rules).
+- All fields must be returned as JSON.
+- Only "Categories" may be returned as [] (empty list) if no suitable match is found. All other fields are strictly required.
+- If either "Title" or "Dates" is null, then all fields must be returned as null.
 - If the event appears expired, ended, or clearly sold out, then return all fields as null.
 - Do not output markdown, bullet points, or any commentary.
 - Final output must be a valid JSON object using null (not the string "null") where applicable.
@@ -69,6 +69,6 @@ You are a professional content editor and SEO expert. Read the following event d
   "DateOrder": "20250626",
   "Location": "RIBA, 66 Portland Place, London, UK",
   "Cost": "£120 standard, £60 students",
-  "Category": "Conferences and Networking Events, Education, Training and CPD"
+  "Categories": ["Conferences and Networking Events", "Education, Training and CPD", "Cultural Events and Exhibitions"]
 }}
     """
