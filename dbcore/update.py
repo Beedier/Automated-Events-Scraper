@@ -87,6 +87,31 @@ def set_remote_media_id(image_id: int, remote_media_id: int) -> bool:
         return False
 
 
+def set_remote_event_id(event_id: int, remote_event_id: int) -> bool:
+    """
+    Set remote_event_id for the given event if not already set.
+
+    Args:
+        event_id (int): ID of the event.
+        remote_event_id (int): Remote event ID to assign.
+
+    Returns:
+        bool: True if updated, False if already set or on error.
+    """
+    try:
+        with db_instance.session_scope() as session:
+            event = session.query(Event).filter_by(id=event_id).first()
+            if not event:
+                return False
+            if event.remote_event_id is not None:
+                return False
+            event.remote_event_id = remote_event_id
+            session.flush()
+            return True
+    except SQLAlchemyError:
+        return False
+
+
 def set_event_generated_content(
     event_id: int,
     category_names: list[str] = None,

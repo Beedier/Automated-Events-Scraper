@@ -156,3 +156,28 @@ def fetch_images_without_remote_media_id(website_name: str) -> list[Image]:
             .distinct()
             .all()
         )
+
+
+def fetch_events_without_remote_event_id(website_name: str) -> list[Event]:
+    """
+    Get distinct events of a website where remote_event_id is missing.
+    """
+    with db_instance.session_scope() as session:
+        return (
+            session.query(Event)
+            .join(Event.image)
+            .filter(
+                Event.website_name == website_name,
+                Event.generated_content.is_(True),
+                Event.title.isnot(None),
+                Event.intro.isnot(None),
+                Event.index_intro.isnot(None),
+                Event.image.remote_media_id.isnot(None),
+                Event.location.isnot(None),
+                Event.dates.isnot(None),
+                Event.date_order.isnot(None),
+                Event.cost.isnot(None)
+            )
+            .order_by(Event.id)
+            .all()
+        )
