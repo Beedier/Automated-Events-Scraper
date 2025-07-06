@@ -69,7 +69,7 @@ class Event(Base):
     )
 
     def __repr__(self):
-        return f"Event(id={self.id}, image_id={self.image.id if self.image else None})"
+        return f"Event(id={self.id}, image_id={self.image_id})"
 
 # -------------------------------------------------------------------
 # Image model - represents an image attached to an event
