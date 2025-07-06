@@ -31,7 +31,7 @@ from beedier import (
     delete_event_async,
 )
 
-from library import ImageProcessor, parse_json_to_dict
+from library import ImageProcessor, parse_json_to_dict, get_existing_event_urls
 from gemini_ai import create_prompt, generate_text_with_gemini
 
 env_config = get_config()
@@ -60,6 +60,9 @@ def run_scraper(category: str, target: str, include_existing: bool = False):
             chromedriver_path=env_config.get("CHROMEDRIVER_PATH")
         )
 
+        # get existing dataset
+        existing_urls = get_existing_event_urls()
+
         for tgt in targets:
             print(f"Scraping: {category} {tgt}")
             scraper_func = get_scraper_function(category, tgt)
@@ -67,6 +70,10 @@ def run_scraper(category: str, target: str, include_existing: bool = False):
 
             # Create events in DB from scraped data
             for event in data.get("events", []):
+                if event.get("url") in existing_urls:
+                    print(f"✅ Skipping existing event: {event.get('url')}")
+                    continue
+
                 _event = create_event(
                     event_url=event.get("url"),
                     website_name=data.get("website_name"),
