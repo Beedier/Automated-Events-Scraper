@@ -3,7 +3,7 @@ from .create import _error_id
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import joinedload
 from .session import db as db_instance
-from .models import Event, Image
+from .models import Event, Image, Category, PublishStatusEnum
 
 
 logger = logging.getLogger(__name__)
@@ -175,6 +175,67 @@ def fetch_events_without_remote_event_id(website_name: str) -> list[Event]:
                 Event.title.isnot(None),
                 Event.intro.isnot(None),
                 Event.index_intro.isnot(None),
+                Event.content.isnot(None),
+                Image.remote_media_id.isnot(None),
+                Event.location.isnot(None),
+                Event.dates.isnot(None),
+                Event.date_order.isnot(None),
+                Event.cost.isnot(None)
+            )
+            .order_by(Event.id)
+            .all()
+        )
+
+def fetch_events_with_remote_event_id_and_categories(website_name: str) -> list[Event]:
+    """Fetch events with remote_event_id and at least one category with remote_category_id, eagerly loading categories, ordered by Event.id."""
+    with db_instance.session_scope() as session:
+        return (
+            session.query(Event)
+            .options(joinedload(Event.categories))
+            .join(Event.categories)
+            .filter(
+                Event.website_name == website_name,
+                Event.remote_event_id.isnot(None),
+                Category.remote_category_id.isnot(None)
+            )
+            .order_by(Event.id)
+            .all()
+        )
+
+
+def fetch_ready_events_for_publishing(website_name: str) -> list[Event]:
+    """
+    Fetch events that are fully prepared and eligible for publishing:
+    - Belong to the specified website
+    - Have already been synced (remote_event_id is set)
+    - Are marked as generated_content
+    - Are not yet published (publish_status = unsynced)
+    - Contain all required content fields
+    - Have an associated image with a remote_media_id
+
+    Args:
+        website_name (str): Website name to filter events.
+
+    Returns:
+        list[Event]: Events ready to be published.
+    """
+    with db_instance.session_scope() as session:
+        return (
+            session.query(Event)
+            .options(joinedload(Event.image))  # Eager load image relationship
+            .join(Event.image)  # Join for filtering on Image
+            .filter(
+                Event.website_name == website_name,
+                Event.publish_status == PublishStatusEnum.unsynced,
+
+                Event.remote_event_id.isnot(None),
+                Event.generated_content.is_(True),
+
+                # Required fields
+                Event.title.isnot(None),
+                Event.intro.isnot(None),
+                Event.index_intro.isnot(None),
+                Event.content.isnot(None),
                 Image.remote_media_id.isnot(None),
                 Event.location.isnot(None),
                 Event.dates.isnot(None),
