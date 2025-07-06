@@ -10,6 +10,8 @@ from .update import set_processed_image_path
 from .update import set_event_generated_content
 from .update import set_remote_media_id
 from .update import set_remote_event_id
+from .update import set_event_publish_status
+from .update import set_event_remote_event_id
 
 from .get import fetch_events_by_website
 from .get import fetch_events_without_web_content
@@ -18,3 +20,6 @@ from .get import fetch_events_with_web_content
 from .get import fetch_events_with_non_generated_content
 from .get import fetch_images_without_remote_media_id
 from .get import fetch_events_without_remote_event_id
+from .get import fetch_events_with_remote_event_id_and_categories
+from .get import fetch_ready_events_for_publishing
+from .get import fetch_events_delete_from_wordpress
