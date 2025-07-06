@@ -245,3 +245,16 @@ def fetch_ready_events_for_publishing(website_name: str) -> list[Event]:
             .order_by(Event.id)
             .all()
         )
+
+
+def fetch_events_delete_from_wordpress(website_name: str) -> list[Event]:
+    with db_instance.session_scope() as session:
+        return (
+            session.query(Event)
+            .filter(
+                Event.website_name == website_name,
+                Event.remote_event_id.isnot(None)
+            )
+            .order_by(Event.id)
+            .all()
+        )

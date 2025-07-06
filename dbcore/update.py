@@ -141,6 +141,27 @@ def set_event_publish_status(event_id: int, status: PublishStatusEnum) -> bool:
     except SQLAlchemyError:
         return False
 
+def set_event_remote_event_id(event_id: int, remote_event_id: int = None) -> bool:
+    """
+    Set the remote_event_id of the given event.
+
+    Args:
+        event_id (int): ID of the event.
+        remote_event_id (int): remote event id default is None
+
+    Returns:
+        bool: True if updated, False if event not found or on error.
+    """
+    try:
+        with db_instance.session_scope() as session:
+            event = session.query(Event).filter_by(id=event_id).first()
+            if not event:
+                return False
+            event.remote_event_id = remote_event_id
+            session.flush()
+            return True
+    except SQLAlchemyError:
+        return False
 
 def set_event_generated_content(
     event_id: int,
