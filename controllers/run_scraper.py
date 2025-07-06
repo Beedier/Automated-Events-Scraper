@@ -1,11 +1,36 @@
+import asyncio
 from selenium_webdriver import get_selenium_chrome_driver
-from dbcore import create_event, get_config
 from .get_scrapers import get_scraper_function
 from .get_all_targets import get_all_targets
-from dbcore import fetch_events_without_web_content, fetch_events_by_website
-from dbcore import fetch_events_with_web_content, fetch_events_with_non_generated_content
-from dbcore import fetch_events_without_image_path, set_event_generated_content
-from dbcore import set_event_web_content, set_processed_image_path
+from dbcore import (
+    Image, create_event, get_config,
+    fetch_events_without_web_content,
+    fetch_events_by_website,
+    fetch_events_with_web_content,
+    fetch_events_with_non_generated_content,
+    fetch_images_without_image_path,
+    set_event_generated_content,
+    fetch_images_without_remote_media_id,
+    set_remote_media_id,
+    set_event_web_content,
+    set_processed_image_path,
+    fetch_events_without_remote_event_id,
+    fetch_events_with_remote_event_id_and_categories,
+    set_remote_event_id, Event,
+    fetch_ready_events_for_publishing, PublishStatusEnum,
+    set_event_publish_status,
+    set_event_remote_event_id,
+    fetch_events_delete_from_wordpress
+)
+
+from beedier import (
+    upload_media_async,
+    create_event_async,
+    update_event_categories_async,
+    push_event_acf_to_wordpress,
+    delete_event_async,
+)
+
 from library import ImageProcessor, parse_json_to_dict
 from gemini_ai import create_prompt, generate_text_with_gemini
 
@@ -42,11 +67,13 @@ def run_scraper(category: str, target: str, include_existing: bool = False):
 
             # Create events in DB from scraped data
             for event in data.get("events", []):
-                create_event(
+                _event = create_event(
                     event_url=event.get("url"),
                     website_name=data.get("website_name"),
                     image_url=event.get("image_url")
                 )
+                if _event:
+                    print(f"Event Created, Event ID: {_event.id}")
 
     elif category == 'event-web-content':
         # Initialize Selenium Chrome driver once for all targets
@@ -107,12 +134,12 @@ def run_scraper(category: str, target: str, include_existing: bool = False):
         for tgt in targets:
             print(f"Processing: {category} {tgt}")
 
-            # Fetch events without images depending on flag
-            events = fetch_events_without_image_path(website_name=tgt)
+            # Fetch images without images depending on flag
+            images = fetch_images_without_image_path(website_name=tgt)
 
-            for event in events:
+            for image in images:
                 image_processor = ImageProcessor(
-                    image_url=event.image.image_url
+                    image_url=image.image_url
                 )
 
                 processed_image_path = image_processor.process(
@@ -121,13 +148,13 @@ def run_scraper(category: str, target: str, include_existing: bool = False):
                 )
 
                 has_updated = set_processed_image_path(
-                    event_id=event.id,
+                    image_id=image.id,
                     image_path=processed_image_path
                 )
 
                 if has_updated:
                     print(
-                        f"Updated image path. Event ID: {event.id}, Image ID: {event.image.id}."
+                        f"Updated image path. Image ID: {image.id}"
                     )
                 else:
                     print("Update Error")
@@ -156,7 +183,7 @@ def run_scraper(category: str, target: str, include_existing: bool = False):
                 if parsed_data:
                     has_updated = set_event_generated_content(
                         event_id=event.id,
-                        category=parsed_data.get("Category"),
+                        category_names=parsed_data.get("Categories"),
                         title=parsed_data.get("Title"),
                         index_intro=parsed_data.get("IndexIntro"),
                         intro=parsed_data.get("Intro"),
@@ -171,6 +198,204 @@ def run_scraper(category: str, target: str, include_existing: bool = False):
                         print(
                             f"ID: {event.id}, Event Updated. Title: {parsed_data.get('Title')}"
                         )
+
+    elif category == 'upload-media':
+
+        for tgt in targets:
+            print(f"Upload media to remote website: {category} {tgt}")
+
+            # Fetch images without remote media id
+            images = fetch_images_without_remote_media_id(website_name=tgt)
+
+            async def upload_and_update(_image: Image):
+                media_id = await upload_media_async(
+                    file_path=_image.image_path,
+                    wp_username=env_config.get('WP_USERNAME'),
+                    wp_password=env_config.get('WP_PASSWORD'),
+                    wp_url=env_config.get('WP_URL')
+                )
+                if media_id:
+                    set_remote_media_id(
+                        image_id=_image.id,
+                        remote_media_id=media_id
+                    )
+
+                    print(f"Updated Remote media ID. Image ID: {_image.id}")
+
+            async def run_all():
+                await asyncio.gather(*(upload_and_update(img) for img in images))
+
+            # Run the async uploads from sync code
+            asyncio.run(run_all())
+
+    elif category == 'create-event':
+
+        for tgt in targets:
+            print(f"Create event to remote website: {category} {tgt}")
+
+            # Fetch events without remote event id
+            events = fetch_events_without_remote_event_id(website_name=tgt)
+
+            async def create_and_update(_event: Event):
+                remote_event_id = await create_event_async(
+                    wp_username=env_config.get('WP_USERNAME'),
+                    wp_password=env_config.get('WP_PASSWORD'),
+                    wp_url=env_config.get('WP_URL'),
+                    title=_event.title
+                )
+                if remote_event_id:
+                    set_remote_event_id(
+                        event_id=_event.id,
+                        remote_event_id=remote_event_id
+                    )
+
+                    print(f"New Remote Event Created. Event ID: {_event.id}. Title: {_event.title}")
+
+            async def run_all():
+                await asyncio.gather(*(create_and_update(evnt) for evnt in events))
+
+            # Run the async uploads from sync code
+            asyncio.run(run_all())
+
+    elif category == 'update-event-category':
+
+        for tgt in targets:
+
+            print(f"Update Event Category to remote website: {category} {tgt}")
+
+            # Fetch events that already have remote_event_id and category mappings
+
+            events = fetch_events_with_remote_event_id_and_categories(website_name=tgt)
+
+
+            async def update_category(_event: Event):
+
+                category_ids = [
+
+                    cat.remote_category_id
+
+                    for cat in _event.categories
+
+                    if cat.remote_category_id is not None
+
+                ]
+
+                if not category_ids:
+                    print(f"Skipping Event ID {_event.id} — No valid remote_category_id found.")
+
+                    return
+
+                success = await update_event_categories_async(
+
+                    event_id=_event.remote_event_id,
+
+                    category_ids=category_ids,
+
+                    wp_username=env_config.get('WP_USERNAME'),
+
+                    wp_password=env_config.get('WP_PASSWORD'),
+
+                    wp_url=env_config.get('WP_URL')
+
+                )
+
+                if success:
+
+                    print(f"✅ Updated categories for Event ID: {_event.id}")
+
+                else:
+
+                    print(f"❌ Failed to update categories for Event ID: {_event.id}")
+
+
+            async def run_all():
+
+                await asyncio.gather(*(update_category(evnt) for evnt in events))
+
+
+            asyncio.run(run_all())
+
+    elif category == 'update-event':
+
+        for tgt in targets:
+
+            print(f"Update Event content to remote website: {category} {tgt}")
+
+            # Fetch events that ready for publishing
+            events = fetch_ready_events_for_publishing(website_name=tgt)
+
+            async def update_and_set_status_draft(_event: Event):
+                success = await push_event_acf_to_wordpress(
+                    remote_event_id=_event.remote_event_id,
+                    remote_media_id=_event.image.remote_media_id,
+
+                    index_intro=_event.index_intro,
+                    intro=_event.intro,
+                    content=_event.content,
+                    website=_event.event_url,
+                    dates=_event.dates,
+
+                    location=_event.location,
+                    cost=_event.cost,
+
+                    date_order=_event.date_order,
+                    wp_username=env_config.get('WP_USERNAME'),
+                    wp_password=env_config.get('WP_PASSWORD'),
+                    wp_url=env_config.get('WP_URL')
+                )
+
+                if success:
+                    # Mark event as draft
+                    set_event_publish_status(
+                        event_id=_event.id,
+                        status=PublishStatusEnum.draft
+                    )
+
+                    print(f"Updated Event Content. Status: Draft, Event ID: {_event.id}")
+
+            async def run_all():
+
+                await asyncio.gather(*(update_and_set_status_draft(evnt) for evnt in events))
+
+            asyncio.run(run_all())
+
+
+    elif category == 'delete-event':
+
+        for tgt in targets:
+
+            print(f"Delete Event from remote website: {category} {tgt}")
+
+            # Fetch events that ready to delete
+            events = fetch_events_delete_from_wordpress(website_name=tgt)
+
+            async def delete_and_set_remote_event_id_and_set_status(_event: Event):
+                success = await delete_event_async(
+                    remote_event_id=_event.remote_event_id,
+                    wp_username=env_config.get('WP_USERNAME'),
+                    wp_password=env_config.get('WP_PASSWORD'),
+                    wp_url=env_config.get('WP_URL')
+                )
+
+                if success:
+                    # Mark event as unsynced
+                    set_event_publish_status(
+                        event_id=_event.id,
+                        status=PublishStatusEnum.unsynced
+                    )
+
+                    set_event_remote_event_id(
+                        event_id=_event.id,
+                        remote_event_id=None
+                    )
+
+                    print(f"Deleted Event. Status: Unsynced, Event ID: {_event.id}")
+
+            async def run_all():
+
+                await asyncio.gather(*(delete_and_set_remote_event_id_and_set_status(evnt) for evnt in events))
+
+            asyncio.run(run_all())
 
     else:
         # Category not recognized, no operation
