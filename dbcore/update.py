@@ -7,7 +7,12 @@ from .models import Event, PublishStatusEnum, Category, Image
 
 logger = logging.getLogger(__name__)
 
-def set_event_web_content(event_id: int, web_content: str, generated_content: bool = False) -> bool:
+def set_event_web_content(
+        event_id: int,
+        web_content: str,
+        generated_content: bool = False,
+        publish_status: PublishStatusEnum = PublishStatusEnum.unsynced
+) -> bool:
     """
     Update web_content and generated_content of the Event by event_id.
 
@@ -15,6 +20,7 @@ def set_event_web_content(event_id: int, web_content: str, generated_content: bo
         event_id (int): ID of the event to update.
         web_content (str): New content to store.
         generated_content (bool): Flag indicating if the content was generated.
+        publish_status (PublishStatusEnum): Flag indicating the publish status
 
     Returns:
         bool: True if update succeeded, False otherwise.
@@ -28,6 +34,7 @@ def set_event_web_content(event_id: int, web_content: str, generated_content: bo
 
             event.web_content = web_content
             event.generated_content = generated_content
+            event.publish_status = publish_status
             session.add(event)
 
             logger.info(f"Event web content updated. ID: {event.id}")
@@ -106,6 +113,29 @@ def set_remote_event_id(event_id: int, remote_event_id: int) -> bool:
             if event.remote_event_id is not None:
                 return False
             event.remote_event_id = remote_event_id
+            session.flush()
+            return True
+    except SQLAlchemyError:
+        return False
+
+
+def set_event_publish_status(event_id: int, status: PublishStatusEnum) -> bool:
+    """
+    Set the publish_status of the given event.
+
+    Args:
+        event_id (int): ID of the event.
+        status (PublishStatusEnum): New publish status to assign.
+
+    Returns:
+        bool: True if updated, False if event not found or on error.
+    """
+    try:
+        with db_instance.session_scope() as session:
+            event = session.query(Event).filter_by(id=event_id).first()
+            if not event:
+                return False
+            event.publish_status = status
             session.flush()
             return True
     except SQLAlchemyError:
