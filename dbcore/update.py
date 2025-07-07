@@ -163,6 +163,29 @@ def set_event_remote_event_id(event_id: int, remote_event_id: int = None) -> boo
     except SQLAlchemyError:
         return False
 
+def set_event_remote_media_id(image_id: int, remote_media_id: int = None) -> bool:
+    """
+    Set the remote_media_id of the given image.
+
+    Args:
+        image_id (int): ID of the image.
+        remote_media_id (int): remote media id default is None
+
+    Returns:
+        bool: True if updated, False if image not found or on error.
+    """
+    try:
+        with db_instance.session_scope() as session:
+            image = session.query(Image).filter_by(id=image_id).first()
+            if not image:
+                return False
+            image.remote_media_id = remote_media_id
+            session.flush()
+            return True
+    except SQLAlchemyError:
+        return False
+
+
 def set_event_generated_content(
     event_id: int,
     category_names: list[str] = None,

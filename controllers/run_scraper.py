@@ -20,7 +20,9 @@ from dbcore import (
     fetch_ready_events_for_publishing, PublishStatusEnum,
     set_event_publish_status,
     set_event_remote_event_id,
-    fetch_events_delete_from_wordpress
+    set_event_remote_media_id,
+    fetch_events_delete_from_wordpress,
+    fetch_images_delete_from_wordpress
 )
 
 from beedier import (
@@ -29,6 +31,7 @@ from beedier import (
     update_event_categories_async,
     push_event_acf_to_wordpress,
     delete_event_async,
+    delete_media_async
 )
 
 from library import ImageProcessor, parse_json_to_dict, get_existing_event_urls
@@ -401,6 +404,38 @@ def run_scraper(category: str, target: str, include_existing: bool = False):
             async def run_all():
 
                 await asyncio.gather(*(delete_and_set_remote_event_id_and_set_status(evnt) for evnt in events))
+
+            asyncio.run(run_all())
+
+    elif category == 'delete-media':
+
+        for tgt in targets:
+
+            print(f"Delete Media from remote website: {category} {tgt}")
+
+            # Fetch media that ready to delete
+            images = fetch_images_delete_from_wordpress(website_name=tgt)
+
+            async def delete_and_set_remote_media_id(_image: Image):
+                success = await delete_media_async(
+                    media_id=_image.remote_media_id,
+                    wp_username=env_config.get('WP_USERNAME'),
+                    wp_password=env_config.get('WP_PASSWORD'),
+                    wp_url=env_config.get('WP_URL')
+                )
+
+                if success:
+
+                    set_event_remote_media_id(
+                        image_id=_image.id,
+                        remote_media_id=None
+                    )
+
+                    print(f"Deleted Media, Image ID: {_image.id}")
+
+            async def run_all():
+
+                await asyncio.gather(*(delete_and_set_remote_media_id(img) for img in images))
 
             asyncio.run(run_all())
 
