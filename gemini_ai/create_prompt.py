@@ -11,7 +11,7 @@ def create_prompt(input_text: str):
     return f"""
 You are a professional content editor and SEO expert. Read the following event description and rewrite it to be persuasive, SEO-optimised, and conversational for a general audience. Return a JSON object with the following exact fields:
 
-1. "Title": Event name (plain text - exactly as it is referenced in the source, but use colon+space as the divider instead of dashes, vertical bars, or other syntax). Do not generate your own title. If the title is not found, return null. **If the title is "None" or "", then all other fields must also be returned as null.**
+1. "Title": Event name (plain text - exactly as it is referenced in the source, but use colon+space as the divider and only once in the string (instead of dashes, vertical bars, or other syntax). If there is no obvious title in the event listing, then create a simple short title of the event using the same conditions.
 
 2. "Dates": Return all event dates in a compact, human-readable, single-line string. Follow these format rules:
 - If dates omit the year (e.g. "Saturday, 7 Jun"), assume current year: "7 Jun 2025"
@@ -32,7 +32,7 @@ You are a professional content editor and SEO expert. Read the following event d
 
 4. "Intro": Same as IndexIntro but omit the date.
 
-5. "Content": A ~200-word SEO-optimised event description. It must be persuasive, conversational, and informative—covering value, themes, and expected outcomes. Paragraphs allowed.
+5. "Content": A ~200-word SEO-optimised event description. It must be informative and conversational, rather than hyperbolic or persuasive - covering value, themes, and expected outcomes, culminating in a sentence that explains why it would be useful for architects to attend. Paragraphs allowed.
 
 6. "DateOrder": Last occurring event date in "YYYYMMDD" format.
 - Use final date for multi-day or scattered events.
@@ -41,7 +41,7 @@ You are a professional content editor and SEO expert. Read the following event d
 
 7. "Location": Format as "Venue Name, Address, City, Country". If hybrid or online, append "and online".
 
-8. "Cost": Include pricing details (all tiers if available) or "Free".
+8. "Cost": Confirm the cost details for this event. If it's free, mention "Free". If there's a fee, include the exact amount and currency (e.g., "$20" or "£15" or "$15 - $2000"). If the cost is not listed or unknown, just mention "Not specified".
 
 9. "Categories": Choose one or more from the below, in a json list:
 - "Conferences and Networking Events" → for industry conferences, networking socials, places to meet clients and collaborators
