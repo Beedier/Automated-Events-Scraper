@@ -318,3 +318,31 @@ def fetch_images_delete_from_wordpress(website_name: str) -> list[Event]:
             .all()
         )
         return images_to_delete
+
+
+def fetch_events_with_content_and_generated_flag(website_name: str) -> list[Event]:
+    """
+    Fetch events from the given website where:
+      - web_content is not null
+      - generated_content is True
+    Categories are eagerly loaded. Events are ordered by ID.
+
+    Args:
+        website_name (str): The target website name.
+
+    Returns:
+        list[Event]: Filtered Event objects with categories preloaded.
+    """
+    with db_instance.session_scope() as session:
+        events = (
+            session.query(Event)
+            .options(joinedload(Event.categories))  # preload categories
+            .filter(
+                Event.website_name == website_name,
+                Event.web_content.isnot(None),
+                Event.generated_content.is_(True)
+            )
+            .order_by(Event.id)
+            .all()
+        )
+        return events
