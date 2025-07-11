@@ -5,7 +5,7 @@ description = "Automated system that scrapes event data, metadata, and images fr
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "alembic>=1.16.2",
+    "alembic>=1.16.4",
     "beautifulsoup4>=4.13.4",
     "google-generativeai>=0.8.5",
     "pillow>=11.3.0",
@@ -14,5 +14,5 @@ dependencies = [
     "requests>=2.32.4",
     "selenium>=4.34.0",
     "sqlalchemy>=2.0.41",
-    "aiohttp>=3.12.13",
+    "aiohttp>=3.12.14",
 ]
