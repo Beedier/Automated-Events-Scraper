@@ -41,10 +41,10 @@ def get_all_targets():
         ("update-event-category", "bco-org"),
         ("update-event-category", "event-bright"),
 
-        ("update-event-status", "riba"),
-        ("update-event-status", "nla"),
-        ("update-event-status", "bco-org"),
-        ("update-event-status", "event-bright"),
+        # ("update-event-status", "riba"),
+        # ("update-event-status", "nla"),
+        # ("update-event-status", "bco-org"),
+        # ("update-event-status", "event-bright"),
 
         ("delete-media", "riba"),
         ("delete-media", "nla"),
@@ -55,5 +55,10 @@ def get_all_targets():
         ("delete-event", "nla"),
         ("delete-event", "bco-org"),
         ("delete-event", "event-bright"),
+
+        ("generate-fine-tuning-dataset", "riba"),
+        ("generate-fine-tuning-dataset", "nla"),
+        ("generate-fine-tuning-dataset", "bco-org"),
+        ("generate-fine-tuning-dataset", "event-bright"),
         # add more pairs here as needed
     ]

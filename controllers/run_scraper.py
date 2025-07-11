@@ -22,7 +22,8 @@ from dbcore import (
     set_event_remote_event_id,
     set_event_remote_media_id,
     fetch_events_delete_from_wordpress,
-    fetch_images_delete_from_wordpress
+    fetch_images_delete_from_wordpress,
+    fetch_events_with_content_and_generated_flag,
 )
 
 from beedier import (
@@ -36,6 +37,7 @@ from beedier import (
 
 from library import ImageProcessor, parse_json_to_dict, get_existing_event_urls
 from gemini_ai import create_prompt, generate_text_with_gemini
+from ollama_ai import export_fine_tuning_events_to_json
 
 env_config = get_config()
 
@@ -438,6 +440,33 @@ def run_scraper(category: str, target: str, include_existing: bool = False):
                 await asyncio.gather(*(delete_and_set_remote_media_id(img) for img in images))
 
             asyncio.run(run_all())
+
+    elif category == 'generate-fine-tuning-dataset':
+
+        all_data = []
+
+        for tgt in targets:
+            print(f"Fetching events with generated content for website: {tgt}")
+
+            events = fetch_events_with_content_and_generated_flag(website_name=tgt)
+
+            print(f"Found {len(events)} events for {tgt}")
+
+            all_data.extend(events)
+
+        print(f"Total events collected for fine-tuning: {len(all_data)}")
+
+        print("Exporting fine-tuning dataset to JSON...")
+
+        export_fine_tuning_events_to_json(
+
+            events=all_data,
+
+            file_path=env_config.get('FINE_TUNING_DATASET')
+
+        )
+
+        print("Fine-tuning dataset export completed.")
 
     else:
         # Category not recognized, no operation
