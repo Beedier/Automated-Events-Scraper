@@ -187,20 +187,36 @@ def fetch_events_without_remote_event_id(website_name: str) -> list[Event]:
         )
 
 def fetch_events_with_remote_event_id_and_categories(website_name: str) -> list[Event]:
-    """Fetch events with remote_event_id and at least one category with remote_category_id, eagerly loading categories, ordered by Event.id."""
+    """
+    Fetch events from a specific website that:
+      - Have a non-null `remote_event_id` (i.e., are synced to WordPress),
+      - Are marked as 'unsynced' locally (to distinguish from new or deleted),
+      - Have at least one associated category with a non-null `remote_category_id`.
+
+    Categories are eagerly loaded to avoid additional queries (via joinedload),
+    and results are ordered by Event ID.
+
+    Args:
+        website_name (str): The name of the WordPress website.
+
+    Returns:
+        list[Event]: Events meeting the criteria, with categories pre-loaded.
+    """
     with db_instance.session_scope() as session:
-        return (
+        events = (
             session.query(Event)
-            .options(joinedload(Event.categories))
-            .join(Event.categories)
+            .options(joinedload(Event.categories))  # eager load categories
+            .join(Event.categories)  # ensure there's at least one category
             .filter(
                 Event.website_name == website_name,
+                Event.publish_status == PublishStatusEnum.unsynced,
                 Event.remote_event_id.isnot(None),
-                Category.remote_category_id.isnot(None)
+                Category.remote_category_id.isnot(None)  # category is synced
             )
             .order_by(Event.id)
             .all()
         )
+        return events
 
 
 def fetch_ready_events_for_publishing(website_name: str) -> list[Event]:
