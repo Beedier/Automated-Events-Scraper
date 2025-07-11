@@ -1,4 +1,37 @@
-import google.generativeai as genai
+from google import genai
+from .create_prompt import SYSTEM_INSTRUCTION
+from pydantic import BaseModel, model_validator, Field
+from typing import List, Optional
+from google.genai import types
+
+
+# === 1. Define output JSON schema via Pydantic ===
+class EventOutput(BaseModel):
+    Title: Optional[str]
+    Dates: Optional[str]
+    IndexIntro: Optional[str]
+    Intro: Optional[str]
+    Content: Optional[str]
+    DateOrder: Optional[str]
+    Location: Optional[str]
+    Cost: Optional[str]
+    Categories: List[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def enforce_all_or_none(self):
+        if self.Categories is None:
+            self.Categories = []
+
+        if self.Title is None or self.Dates is None:
+            # Auto-set all other fields except Categories to None
+            for field in self.model_fields.keys():
+                if field not in ["Title", "Dates", "Categories"]:
+                    setattr(self, field, None)
+
+        return self
+
+
+
 
 def generate_text_with_gemini(api_key: str, prompt: str):
     """
@@ -13,14 +46,18 @@ def generate_text_with_gemini(api_key: str, prompt: str):
     """
     try:
         # Configure the Gemini API with the API key.
-        genai.configure(api_key=api_key)
-
-        # Set up the model
-        model = genai.GenerativeModel('gemini-2.0-flash')
+        client = genai.Client(api_key=api_key)
 
         # Generate content using the model.
-        response = model.generate_content(prompt)
-
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type='application/json',
+                response_schema=EventOutput,
+                system_instruction=SYSTEM_INSTRUCTION
+            )
+        )
         # Return the generated text.
         return response.text
 
