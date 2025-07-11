@@ -18,3 +18,4 @@ uv.lock
 
 # processed image
 images/process-image/*
+*.json
