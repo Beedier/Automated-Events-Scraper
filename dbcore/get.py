@@ -248,27 +248,57 @@ def fetch_ready_events_for_publishing(website_name: str) -> list[Event]:
 
 
 def fetch_events_delete_from_wordpress(website_name: str) -> list[Event]:
+    """
+    Fetch events from a specific WordPress website that have been uploaded
+    (i.e., have a non-null remote_event_id), indicating they exist on WordPress.
+
+    This function is typically used to determine which events should be deleted
+    from WordPress based on the source website.
+
+    Args:
+        website_name (str): The name of the WordPress website to filter events by.
+
+    Returns:
+        list[Event]: A list of `Event` instances from the specified website
+                     with a non-null `remote_event_id`.
+    """
     with db_instance.session_scope() as session:
-        return (
+        events_to_delete = (
             session.query(Event)
             .filter(
                 Event.website_name == website_name,
-                Event.remote_event_id.isnot(None)
+                Event.remote_event_id.isnot(None)  # event exists on WordPress
             )
-            .order_by(Event.id)
+            .order_by(Event.id)  # optional: ensures deterministic ordering
             .all()
         )
+        return events_to_delete
 
 
 def fetch_images_delete_from_wordpress(website_name: str) -> list[Event]:
+    """
+    Fetch images associated with events from a specific WordPress website
+    that have a non-null remote_media_id (indicating they were uploaded to WordPress).
+
+    This function is typically used to identify which images should be deleted from WordPress
+    when the associated events need to be cleaned up.
+
+    Args:
+        website_name (str): The name of the WordPress website to filter events by.
+
+    Returns:
+        list[Event]: A list of `Image` instances that are linked to events from the
+                     specified website and have a non-null `remote_media_id`.
+    """
     with db_instance.session_scope() as session:
-        return (
+        images_to_delete = (
             session.query(Image)
-            .join(Image.events)
+            .join(Image.events)  # assumes a relationship from Image -> Event via Image.events
             .filter(
                 Event.website_name == website_name,
-                Image.remote_media_id.isnot(None)
+                Image.remote_media_id.isnot(None)  # ensure image was uploaded to WordPress
             )
-            .order_by(Image.id)
+            .order_by(Image.id)  # optional: ensures consistent order
             .all()
         )
+        return images_to_delete
