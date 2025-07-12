@@ -29,16 +29,26 @@ You are a professional content editor and SEO expert. Given an event description
 
 7. "Location": Format as "Venue Name, Address, City, Country". If hybrid or online, append "and online".
 
-8. "Cost": Provide the exact cost with currency if specified (e.g., "$20", "£15", "$15 - $2000"). If the event is free, state "Free". If no numeric cost is mentioned or cost details are missing, use a placeholder → "Not specified".
-
+8. "Cost":
+   - Active events:
+     • Exact price with currency if specified ("$20", "£15-£50")
+     • "Free" for free events
+     • "Not specified" if cost details are missing
+   - Inactive events:
+     • Registration-related statuses:
+       "Sold out", "Waitlist only", "Registration closed", "Fully booked"
+     • Time-related statuses:
+       "Event ended", "Past event", "Occurred on [DD MM YYYY]"
+     • Cancellation statuses:
+       "Cancelled", "Postponed", "Rescheduled to [new date]"
+     • Must be 2-5 word clear status indication
+     • Should directly reflect the event description's wording
+   - Never null (always string output)
+   
 9. "Categories": Select one or more relevant categories from the list below. Each category represents a distinct type of event:
     - "Conferences and Networking Events" → Industry-wide conferences, professional networking socials, business meetups, and events designed to connect clients, collaborators, and industry experts.
     - "Education, Training and CPD" → Events focused on learning and professional development, including seminars, CPD-accredited training sessions, workshops, academic conferences, day courses, and knowledge-sharing forums.
     - "Cultural Events and Exhibitions" → Events showcasing architectural culture and creativity such as design festivals, public talks by architects, guided walking tours, architectural film screenings, gallery exhibitions, and other culturally enriching experiences.
-
-**Strict rules:**
-    - If either the "Title" or "Dates" field is missing or null, then all other fields must also be returned as null. This rule ensures that incomplete or insufficient event information results in a fully null response, maintaining data consistency and avoiding partial or misleading outputs.
-    - If the event is no longer active—such as having already taken place, officially ended, or is clearly sold out with no possibility of registration or attendance—then all fields in the response should be returned as null. This ensures that outdated or unavailable events are properly excluded from further use or display.
 """
 
 def create_prompt(input_text: str):

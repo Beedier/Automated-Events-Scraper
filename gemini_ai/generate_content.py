@@ -22,11 +22,8 @@ class EventOutput(BaseModel):
         if self.Categories is None:
             self.Categories = []
 
-        if self.Title is None or self.Dates is None:
-            # Auto-set all other fields except Categories to None
-            for field in self.model_fields.keys():
-                if field not in ["Title", "Dates", "Categories"]:
-                    setattr(self, field, None)
+        if self.Dates is None:
+            self.Dates = "Date not specified"  # Or other placeholder
 
         return self
 
