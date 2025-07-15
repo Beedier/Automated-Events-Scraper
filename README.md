@@ -53,7 +53,30 @@ uv pip list
    - AI API keys (Gemini/LLaMA)
    - Scraping targets configuration
 
-### 4. Database Setup
+### 4. Using Podman Compose
+
+```bash
+# Build and start all services defined in docker-compose.yml
+podman-compose up -d
+
+# View running containers
+podman-compose ps
+
+# View logs
+podman-compose logs -f
+
+# Stop services
+podman-compose down
+```
+
+The `docker-compose.yml` file contains all necessary service configurations, including:
+
+- Database service
+- Application service with required volumes and environment variables
+- Network configurations
+
+
+### 5. Database Setup
 
 ```bash
 # Apply database migrations
@@ -82,28 +105,6 @@ alembic upgrade head
 - Category management
 
 ## Running the Application 🏃
-
-### Using Podman Compose
-
-```bash
-# Build and start all services defined in docker-compose.yml
-podman-compose up -d
-
-# View running containers
-podman-compose ps
-
-# View logs
-podman-compose logs -f
-
-# Stop services
-podman-compose down
-```
-
-The `docker-compose.yml` file contains all necessary service configurations, including:
-
-- Database service
-- Application service with required volumes and environment variables
-- Network configurations
 
 ### Development Mode
 
