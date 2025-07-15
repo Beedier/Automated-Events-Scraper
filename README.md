@@ -234,8 +234,7 @@ Each command supports the following options:
 
 ## Project Structure 📁
 
-```
-```bash
+```commandline
 .
 ├── alembic/                    # Database migrations
 │   ├── versions/              # Migration version files
