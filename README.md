@@ -193,10 +193,6 @@ uv run main.py delete-media all                 # All sources
 uv run main.py delete-media [source]            # Specific source
 ```
 
-```
-
-```
-
 **Features:**
 
 - Handles bulk media uploads efficiently
@@ -236,12 +232,10 @@ Each command supports the following options:
 
 - `--include-existing`: Override conflict checks
 
-```
-
 ## Project Structure 📁
 
 ```
-
+```bash
 .
 ├── alembic/                    # Database migrations
 │   ├── versions/              # Migration version files
@@ -311,7 +305,6 @@ Each command supports the following options:
 ├── main.py                    # Application entry point
 ├── pyproject.toml            # Project dependencies
 └── uv.lock                   # Dependency lock file
-
 ```
 
 ## Development Guide 👩‍💻
