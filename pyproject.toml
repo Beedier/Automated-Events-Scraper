@@ -15,4 +15,5 @@ dependencies = [
     "sqlalchemy>=2.0.41",
     "aiohttp>=3.12.14",
     "google-genai>=1.25.0",
+    "pytest>=8.4.1",
 ]
