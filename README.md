@@ -107,80 +107,141 @@ The `docker-compose.yml` file contains all necessary service configurations, inc
 
 ### Development Mode
 
-```bash
-# Basic usage
-uv run main.py [command] [options]
-```
+The application follows a pipeline architecture with distinct phases. Each command can target all sources or a specific source.
 
-Available Commands:
+#### 1. Event URL Collection Phase
 
-1. **Scraping Commands**
+Scrapes and stores event URLs from architectural websites.
 
 ```bash
-# Scrape all sources event urls
+# Collect event URLs from all sources
 uv run main.py event-url all
 
-# Scrape specific source event urls
+# Collect event URLs from a specific source
 uv run main.py event-url [riba|nla|bco|eventbrite]
+```
 
-# Process Image for all source
+- Collects event URLs and metadata
+- Downloads thumbnail images
+- Handles pagination automatically
+- Respects rate limiting
+
+#### 2. Image Processing Phase
+
+Processes and optimizes downloaded images.
+
+```bash
+# Process images from all sources
 uv run main.py process-image all
 
-# Process specific source Image
+# Process images from a specific source
 uv run main.py process-image [riba|nla|bco|eventbrite]
+```
 
-# Scrape all sources web content
+- Applies organizational watermarks
+- Optimizes image sizes
+- Handles various image formats
+- Maintains quality standards
+
+#### 3. Event Content Extraction Phase
+
+Scrapes detailed content from collected URLs.
+
+```bash
+# Extract content from all sources
 uv run main.py event-web-content all
 
-# Scrape specific source event web content
+# Extract content from a specific source
 uv run main.py event-web-content [riba|nla|bco|eventbrite]
+```
 
-# Generate Content for all source
+- Extracts comprehensive event details
+- Handles different page structures
+- Manages timeouts and retries
+- Validates data integrity
+
+#### 4. AI Content Enhancement Phase
+
+Uses AI models to enhance and standardize content.
+
+```bash
+# Generate enhanced content for all sources
 uv run main.py generate-content all
 
-# Generate Content for specific source
+# Generate enhanced content for specific source
 uv run main.py generate-content [riba|nla|bco|eventbrite]
 ```
 
-2. **WordPress Management**
+- Enhances event descriptions
+- Standardizes formatting
+- Improves SEO-friendliness
+- Maintains content authenticity
 
-```bash
-# Upload Media to wordpress for all source
-uv run main.py upload-media all
+#### 5. WordPress Integration Phase
 
-# Upload Media to wordpress for specific source
-uv run main.py upload-media [riba|nla|bco|eventbrite]
+Manages the synchronization of content with WordPress.
 
-# Create Event to wordpress for all source
-uv run main.py create-event all
+##### Media Management
 
-# Create Event to wordpress for specific source
-uv run main.py create-event [riba|nla|bco|eventbrite]
+```
+# Upload images to WordPress
+uv run main.py upload-media all                 # All sources
+uv run main.py upload-media [source]            # Specific source
 
-# Update Event Category to wordpress for all source
-uv run main.py update-event-category all
+# Remove unused media
+uv run main.py delete-media all                 # All sources
+uv run main.py delete-media [source]            # Specific source
+```
 
-# Update Event Category to wordpress for specific source
-uv run main.py update-event-category [riba|nla|bco|eventbrite]
+```
 
-# Update Event to wordpress for all source
-uv run main.py update-event all
+```
 
-# Update Event to wordpress for specific source
-uv run main.py update-event [riba|nla|bco|eventbrite]
+**Features:**
 
-# Delete event from WordPress
-uv run main.py delete-event all
-uv run main.py delete-event [riba|nla|bco|eventbrite]
+- Handles bulk media uploads efficiently
+- Manages WordPress media library integration
+- Supports various image formats and sizes
+- Maintains media metadata and relationships
 
-# Delete media from WordPress
-uv run main.py delete-media all
-uv run main.py delete-media [riba|nla|bco|eventbrite]
+##### Event Management
+
+```
+# Create events in WordPress
+uv run main.py create-event all                 # All sources
+uv run main.py create-event [source]            # Specific source
+
+# Manage event categories
+uv run main.py update-event-category all        # All sources
+uv run main.py update-event-category [source]   # Specific source
+
+# Update existing events
+uv run main.py update-event all                 # All sources
+uv run main.py update-event [source]            # Specific source
+
+# Remove events
+uv run main.py delete-event all                 # All sources
+uv run main.py delete-event [source]            # Specific source
+```
+
+**Features:**
+
+- Complete event lifecycle management
+- Automatic category assignment
+- Batch processing capabilities
+- Data integrity validation
+- Conflict resolution handling
+
+Each command supports the following options:
+
+- `--include-existing`: Override conflict checks
+
 ```
 
 ## Project Structure 📁
 
 ```
+
 .
 ├── alembic/                    # Database migrations
 │   ├── versions/              # Migration version files
@@ -250,6 +311,7 @@ uv run main.py delete-media [riba|nla|bco|eventbrite]
 ├── main.py                    # Application entry point
 ├── pyproject.toml            # Project dependencies
 └── uv.lock                   # Dependency lock file
+
 ```
 
 ## Development Guide 👩‍💻
