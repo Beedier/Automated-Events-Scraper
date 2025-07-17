@@ -6,6 +6,11 @@ This project automates the collection and publication of architectural events fr
 
 ## Quick Start Guide 🚀
 
+### *. For pro user (not recommended)
+```bash
+podman-compose up -d && ./restore_data.sh db_data_backup.sql && uv run main.py event-url all && uv run main.py process-image all && uv run main.py event-web-content all && uv run main.py generate-content all && uv run main.py upload-media all && uv run main.py create-event all && uv run main.py update-event-category all && uv run main.py update-event all && ./dump_db.sh && git add db_data_backup.sql && git commit -m "latest db data added." && git push -u origin dev && git checkout master && git merge dev && git push -u origin master && git checkout dev && podman-compose down
+```
+
 ### 1. System Requirements
 
 - Linux-based OS
