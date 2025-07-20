@@ -49,7 +49,12 @@ def get_event_urls_from_event_bright(
         while True:
             time.sleep(5)  # Let content load
 
-            event_cards = chromedriver.find_elements(By.CSS_SELECTOR, "section.horizontal-event-card__column")
+            all_sections = chromedriver.find_elements(By.CSS_SELECTOR, "section.horizontal-event-card__column")
+            event_cards = []
+            for section in all_sections:
+                if section.find_elements(By.CSS_SELECTOR, "a[data-event-category='business']"):
+                    event_cards.append(section)
+
             for card in event_cards:
                 try:
                     url = card.find_element(By.CLASS_NAME, "event-card-link").get_attribute("href")
