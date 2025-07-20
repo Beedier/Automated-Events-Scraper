@@ -412,14 +412,14 @@ SELECT pg_catalog.setval('public.categories_id_seq', 3, true);
 -- Name: events_id_seq; Type: SEQUENCE SET; Schema: public; Owner: user
 --
 
-SELECT pg_catalog.setval('public.events_id_seq', 683, true);
+SELECT pg_catalog.setval('public.events_id_seq', 757, true);
 
 
 --
 -- Name: images_id_seq; Type: SEQUENCE SET; Schema: public; Owner: user
 --
 
-SELECT pg_catalog.setval('public.images_id_seq', 124, true);
+SELECT pg_catalog.setval('public.images_id_seq', 125, true);
 
 
 --
