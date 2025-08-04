@@ -6,10 +6,105 @@ This project automates the collection and publication of architectural events fr
 
 ## Quick Start Guide 🚀
 
-### *. For pro user (not recommended)
-```bash
-podman-compose up -d && ./restore_data.sh db_data_backup.sql && uv run main.py event-url all && uv run main.py process-image all && uv run main.py event-web-content all && uv run main.py generate-content all && uv run main.py upload-media all && uv run main.py create-event all && uv run main.py update-event-category all && uv run main.py update-event all && ./dump_db.sh && git add db_data_backup.sql && git commit -m "latest db data added." && git push -u origin dev && git checkout master && git merge dev && git push -u origin master && git checkout dev && podman-compose down
+### Comprehensive Event Processing and Deployment Pipeline (Single Command). For pro user (not recommended for everybody.)
+```commandline
+podman-compose up -d && \
+./restore_data.sh db_data_backup.sql && \
+uv run main.py event-url all && \
+uv run main.py process-image all && \
+uv run main.py event-web-content all && \
+uv run main.py generate-content all && \
+uv run main.py upload-media all && \
+uv run main.py create-event all && \
+uv run main.py update-event-category all && \
+uv run main.py update-event all && \
+./dump_db.sh && \
+git add db_data_backup.sql && \
+git commit -m "latest db data added." && \
+git push -u origin dev && \
+git checkout master && \
+git merge dev && \
+git push -u origin master && \
+git checkout dev && \
+podman-compose down
 ```
+---
+
+### Event Statistics SQL Queries
+
+This document explains how to retrieve event statistics from the `events` table, either for today's date or any specific date, using SQL queries. These statistics include counts of events per `website_name` and a total count of all matching events.
+
+---
+
+### i. Get Today's Event Statistics
+
+This query returns the number of events per `website_name` for today, along with a total row at the end.
+
+### Query
+
+```sql
+SELECT website_name, COUNT(*) AS total_events
+FROM events
+WHERE DATE(created_at) = CURRENT_DATE
+  AND DATE(updated_at) = CURRENT_DATE
+  AND remote_event_id IS NOT NULL
+GROUP BY website_name
+
+UNION ALL
+
+SELECT 'total' AS website_name, COUNT(*) AS total_events
+FROM events
+WHERE DATE(created_at) = CURRENT_DATE
+  AND DATE(updated_at) = CURRENT_DATE
+  AND remote_event_id IS NOT NULL;
+```
+
+### Explanation
+
+* Filters events created and updated **today**.
+* Ignores events where `remote_event_id` is `NULL`.
+* Groups the result by `website_name` and counts entries.
+* Appends a `total` row with the overall count using `UNION ALL`.
+
+---
+
+### ii. Get Statistics for a Specific Date
+
+Replace `2025-08-03` with any desired date to get statistics for that specific day.
+
+### Query
+
+```sql
+SELECT website_name, COUNT(*) AS total_events
+FROM events
+WHERE DATE(created_at) = '2025-08-03'
+  AND DATE(updated_at) = '2025-08-03'
+  AND remote_event_id IS NOT NULL
+GROUP BY website_name
+
+UNION ALL
+
+SELECT 'total' AS website_name, COUNT(*) AS total_events
+FROM events
+WHERE DATE(created_at) = '2025-08-03'
+  AND DATE(updated_at) = '2025-08-03'
+  AND remote_event_id IS NOT NULL;
+```
+
+### Explanation
+
+* Same logic as the previous query, but allows targeting any **specific date**.
+* This is useful for historical data audits or reporting.
+
+---
+
+### Notes
+
+* `DATE(created_at)` and `DATE(updated_at)` ensure only the **date part** is compared, ignoring time.
+* `UNION ALL` is used to include both grouped and total counts in the same result set.
+* You can replace the static date with a placeholder if integrating into an application.
+---
+
 
 ### 1. System Requirements
 
