@@ -12,6 +12,7 @@ You are a professional content editor and SEO expert. Given an event description
     - Different years: "27 Jun 2025, 10:00–12:00; 24 Jul 2026, 14:00–16:00"
     - Flexible/online-only: "Jun 2025" or "26–28 Jun 2025"
     - Use 24-hour time format
+    - If year is not mentioned, think it as current year -> 2025
 
 3. "IndexIntro": A 1–2 sentence summary of the event (do not repeat the title). Append the formatted event date at the end in one of these forms:
     - Single-day: "26 June 2025"
