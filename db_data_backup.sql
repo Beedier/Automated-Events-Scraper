@@ -22,8 +22,8 @@ SET row_security = off;
 
 COPY public.categories (id, name, remote_category_id, updated_at, created_at) FROM stdin;
 1	Conferences and Networking Events	7110	\N	2025-07-07 16:32:27.599063
-2	Education, Training and CPD	7148	\N	2025-07-07 16:32:59.806223
 3	Cultural Events and Exhibitions	7109	\N	2025-07-07 16:33:37.340038
+2	Education Training and CPD	7107	\N	2025-07-07 16:32:59.806223
 \.
 
 

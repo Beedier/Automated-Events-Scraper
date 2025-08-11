@@ -47,7 +47,7 @@ You are a professional content editor and SEO expert. Given an event description
    
 9. "Categories": Select one or more relevant categories from the list below. Each category represents a distinct type of event:
     - "Conferences and Networking Events" → Industry-wide conferences, professional networking socials, business meetups, and events designed to connect clients, collaborators, and industry experts.
-    - "Education, Training and CPD" → Events focused on learning and professional development, including seminars, CPD-accredited training sessions, workshops, academic conferences, day courses, and knowledge-sharing forums.
+    - "Education Training and CPD" → Events focused on learning and professional development, including seminars, CPD-accredited training sessions, workshops, academic conferences, day courses, and knowledge-sharing forums.
     - "Cultural Events and Exhibitions" → Events showcasing architectural culture and creativity such as design festivals, public talks by architects, guided walking tours, architectural film screenings, gallery exhibitions, and other culturally enriching experiences.
 """
 
