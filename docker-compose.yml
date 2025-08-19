@@ -2,18 +2,18 @@ version: '3.8'
 
 services:
   db:
-    image: postgres:16-alpine3.20
+    image: quay.io/sclorg/postgresql-15-c9s
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: pass
-      POSTGRES_DB: mydb
+      POSTGRESQL_USER: user
+      POSTGRESQL_PASSWORD: pass
+      POSTGRESQL_DATABASE: mydb
     volumes:
       - event_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
 
   adminer:
-    image: adminer
+    image: quay.io/lib/adminer
     ports:
       - "8080:8080"
     depends_on:
