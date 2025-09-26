@@ -8,7 +8,7 @@ DATA_FILE="$1"
 
 # Usage check
 if [ -z "$DATA_FILE" ]; then
-  echo "Usage: $0 path_to_data_sql_file"
+  echo "Usage: $0 path_to_data_sql_file(.sql or .sql.gz)"
   exit 1
 fi
 
@@ -26,7 +26,6 @@ fi
 
 echo "🧹 Discovering tables to truncate..."
 
-# Get all table names except alembic_version
 TABLES=$(podman exec -i "$CONTAINER_ID" psql -U "$DB_USER" -d "$DB_NAME" -t -c \
   "SELECT tablename FROM pg_tables WHERE schemaname='public' AND tablename != 'alembic_version';" | tr -d ' ')
 
@@ -41,9 +40,19 @@ fi
 
 echo "📥 Restoring data from $DATA_FILE ..."
 
-if podman exec -i "$CONTAINER_ID" psql -U "$DB_USER" -d "$DB_NAME" < "$DATA_FILE"; then
-  echo "✅ Restore completed. Please check output above for any row-level errors."
+# Detect gzipped file and decompress on-the-fly
+if [[ "$DATA_FILE" == *.gz ]]; then
+  if gunzip -c "$DATA_FILE" | podman exec -i "$CONTAINER_ID" psql -U "$DB_USER" -d "$DB_NAME"; then
+    echo "✅ Restore completed from compressed file."
+  else
+    echo "❌ Restore failed from compressed file."
+    exit 4
+  fi
 else
-  echo "❌ Restore failed. See error messages above."
-  exit 4
+  if podman exec -i "$CONTAINER_ID" psql -U "$DB_USER" -d "$DB_NAME" < "$DATA_FILE"; then
+    echo "✅ Restore completed from SQL file."
+  else
+    echo "❌ Restore failed from SQL file."
+    exit 4
+  fi
 fi
