@@ -19,7 +19,7 @@ uv run main.py create-event all && \
 uv run main.py update-event-category all && \
 uv run main.py update-event all && \
 ./dump_db.sh && \
-git add db_data_backup.sql && \
+git add db_data_backup.sql.gz && \
 git commit -m "latest db data added." && \
 git push -u origin dev && \
 git checkout master && \
@@ -183,7 +183,7 @@ The `docker-compose.yml` file contains all necessary service configurations, inc
 alembic upgrade head
 
 # (Optional) Restore sample data
-./restore_data.sh db_data_backup.sql
+./restore_data.sh db_data_backup.sql.gz
 ```
 
 ## Project Components 🔧
