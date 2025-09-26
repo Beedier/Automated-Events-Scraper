@@ -1,9 +1,11 @@
 #!/bin/bash
 set -euo pipefail
 
-log() {
-  echo -e "\n🔹 $1\n"
-}
+log() { echo -e "\n🔹 $1\n"; }
+
+# DB config (can override with environment variables)
+DB_NAME=${DB_NAME:-mydb}
+DB_USER=${DB_USER:-user}
 
 # Start containers (only if not running)
 if ! podman-compose ps | grep -q "Up"; then
@@ -55,6 +57,32 @@ else
   git merge dev
   git push origin master
   git checkout dev
+fi
+
+# Automatically detect the running Postgres container
+CONTAINER_ID=$(podman ps --filter "ancestor=postgres" --format "{{.ID}}" | head -n1)
+if [ -z "$CONTAINER_ID" ]; then
+  log "❌ No running Postgres container found. Skipping report."
+else
+  log "Using Postgres container: $CONTAINER_ID"
+
+  # Run final DB report
+  log "Generating today's event summary..."
+  podman exec -i "$CONTAINER_ID" \
+    psql -U "$DB_USER" -d "$DB_NAME" -c "
+      SELECT website_name, COUNT(*) AS total_events
+      FROM events
+      WHERE DATE(created_at) = CURRENT_DATE
+        AND DATE(updated_at) = CURRENT_DATE
+        AND remote_event_id IS NOT NULL
+      GROUP BY website_name
+      UNION ALL
+      SELECT 'total' AS website_name, COUNT(*) AS total_events
+      FROM events
+      WHERE DATE(created_at) = CURRENT_DATE
+        AND DATE(updated_at) = CURRENT_DATE
+        AND remote_event_id IS NOT NULL;
+    "
 fi
 
 # Stop containers
