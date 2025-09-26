@@ -36,7 +36,7 @@ for step in \
   "update-event"
 do
   log "Step: $step"
-#  uv run main.py "$step" all
+  uv run main.py "$step" all
 done
 
 # Dump DB
