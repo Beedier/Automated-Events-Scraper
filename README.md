@@ -9,7 +9,7 @@ This project automates the collection and publication of architectural events fr
 ### Comprehensive Event Processing and Deployment Pipeline (Single Command). For pro user (not recommended for everybody.)
 ```commandline
 podman-compose up -d && \
-./restore_data.sh db_data_backup.sql && \
+./restore_data.sh db_data_backup.sql.gz && \
 uv run main.py event-url all && \
 uv run main.py process-image all && \
 uv run main.py event-web-content all && \
