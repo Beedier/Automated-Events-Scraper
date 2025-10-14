@@ -11,7 +11,7 @@ from library import build_url_with_params
 def get_event_urls_from_riba(
     chromedriver: WebDriver,
     start_page: int = 1,
-    base_page_url: str = "https://www.architecture.com/whats-on"
+    base_page_url: str = "https://www.riba.org/whats-on"
 ) -> dict:
     """
     Scrapes event URLs and image URLs from RIBA What's On page using Selenium.
@@ -49,14 +49,17 @@ def get_event_urls_from_riba(
 
     while True:
         # Parse event data from current page
-        events = chromedriver.find_elements(By.CSS_SELECTOR, "a.list-item__link")
+        events = chromedriver.find_elements(By.CSS_SELECTOR, "div.listing-block__cards > div.listing-card")
         for event in events:
             try:
-                url = event.get_attribute("href")
-                image = event.find_element(By.CSS_SELECTOR, "img.list-item__image")
+                _event = event.find_element(By.CSS_SELECTOR, "div.listing-card__text > a.listing-card__title")
+                image = event.find_element(By.CSS_SELECTOR, "div.listing-card__image > picture > img.image-item")
+
+                _event_url = _event.get_attribute("href")
                 image_url = image.get_attribute("src")
+
                 events_data["events"].append({
-                    "url": url,
+                    "url": _event_url,
                     "image_url": image_url
                 })
             except NoSuchElementException:
@@ -64,9 +67,29 @@ def get_event_urls_from_riba(
 
         # Try to go to the next page
         try:
-            next_button = chromedriver.find_element(By.CSS_SELECTOR, "a[rel='next']")
-            next_button.click()
-            current_page += 1
+            # Find the current active page
+            current = chromedriver.find_element(By.CSS_SELECTOR, ".pagination-button--current")
+            current_page = int(current.text.strip())
+
+            # Find all pagination links
+            pages = chromedriver.find_elements(By.CSS_SELECTOR, ".pagination-button")
+
+            # Find the next page link (if available)
+            next_page = None
+            for page in pages:
+                try:
+                    if int(page.text.strip()) == current_page + 1:
+                        next_page = page
+                        break
+                except ValueError:
+                    pass
+
+            if not next_page:
+                print("No more pages.")
+                break
+
+            # Click next page and wait to load
+            chromedriver.execute_script("arguments[0].click();", next_page)
             time.sleep(1)
         except NoSuchElementException:
             break  # No more pages
