@@ -8,42 +8,55 @@ from selenium.webdriver.support.ui import WebDriverWait
 from library import extract_text_or_none, clean_text
 
 
-def extract_event_details_from_list(ul_block: Tag) -> dict:
+def extract_event_details_from_list(div_block: Tag) -> dict:
     """
-    Extracts event metadata from a <ul> block with RIBA's event info structure.
+    Extracts event metadata from a <div> block with RIBA's event info structure.
 
     Args:
-        ul_block (Tag): BeautifulSoup <ul> element containing the event list.
+        div_block (Tag): BeautifulSoup <div> element containing the event list.
 
     Returns:
         dict: Dictionary with keys: date, place, contact, cost.
     """
     data = {
         "date": None,
-        "place": None,
-        "contact": None,
-        "cost": None,
+        "price": None,
+        "time": None,
+        "organized_by": None,
+        "location": None
     }
 
-    for item in ul_block.select("li.call-to-action-hero__list-item"):
-        icon = item.select_one("span.call-to-action-hero__list-icon")
-        text = extract_text_or_none(item.select_one("span.call-to-action-hero__list-text"))
-        if not icon or not text:
-            continue
+    for item in div_block.select("div.detail-page-banner__bite"):
+        detail_label = extract_text_or_none(item.select_one("div.detail-page-banner__bite-label"))
+        detail_info = extract_text_or_none(item.select_one("div.detail-page-banner__bite-value"))
 
-        icon_text = icon.text.strip()
-
-        match icon_text:
-            case "today":
-                data["date"] = text
-            case "place":
-                data["place"] = text
-            case "call":
-                data["contact"] = text
-            case "receipt":
-                data["cost"] = text
+        if detail_label is not None:
+            match detail_label.lower():
+                case "date":
+                    data["date"] = detail_info
+                case "price":
+                    data["price"] = detail_info
+                case "time":
+                    data["time"] = detail_info
+                case "organised by":
+                    data["organized_by"] = detail_info
+                case "location":
+                    data["location"] = detail_info
 
     return data
+
+def extract_tabbed_content(html: BeautifulSoup):
+    buttons = html.select(".tabbed-content-block__tab")
+    contents = html.select(".tabbed-content-block__content")
+    result = []
+
+    for i, btn in enumerate(buttons):
+        title_text = extract_text_or_none(btn.select_one(".tabbed-content-block__tab-name"))
+        content_text = extract_text_or_none(contents[i].select_one(".rich-text")) if i < len(contents) else None
+        if title_text and content_text:
+            result.append(f"{title_text}: {content_text}")
+
+    return result
 
 
 def get_event_web_content_from_riba(
@@ -75,14 +88,13 @@ def get_event_web_content_from_riba(
         soup = BeautifulSoup(chromedriver.page_source, "html.parser")
 
         # Extract core elements
-        event_type = clean_text(extract_text_or_none(soup.select_one("span.call-to-action-hero__tag")))
-        event_title = clean_text(extract_text_or_none(soup.select_one("h1.call-to-action-hero__title")))
-        event_intro = clean_text(extract_text_or_none(soup.select_one("p.call-to-action-hero__intro")))
-        event_description = extract_text_or_none(soup.select_one("article.rich-text"))
+        event_title = clean_text(extract_text_or_none(soup.select_one("h1.detail-page-banner__text-title")))
+        event_intro = clean_text(extract_text_or_none(soup.select_one("div.tabbed-content-block__description.body-text")))
+        event_description_items = extract_tabbed_content(html=soup)
 
         # Parse list-based event metadata
-        ul = soup.select_one("ul.call-to-action-hero__list")
-        raw_details = extract_event_details_from_list(ul) if ul else {}
+        div_element = soup.select_one("div.detail-page-banner__info")
+        raw_details = extract_event_details_from_list(div_element) if div_element else {}
         event_details = {k: clean_text(v) for k, v in raw_details.items()}
 
         # Format output string as single line with \n separators
@@ -93,20 +105,21 @@ def get_event_web_content_from_riba(
         else:
             return None
 
-        if event_type:
-            lines.append(f"Event Type: {event_type}")
         if event_intro:
             lines.append(f"Short Description: {event_intro}")
         if event_details.get('date'):
             lines.append(f"Date: {event_details['date']}")
-        if event_details.get('place'):
-            lines.append(f"Place: {event_details['place']}")
-        if event_details.get('contact'):
-            lines.append(f"Contact: {event_details['contact']}")
-        if event_details.get('cost'):
-            lines.append(f"Cost: {event_details['cost']}")
-        if event_description:
-            lines.append(f"Description: {event_description}")
+        if event_details.get('time'):
+            lines.append(f"Time: {event_details['time']}")
+        if event_details.get('price'):
+            lines.append(f"Price: {event_details['price']}")
+        if event_details.get('organized_by'):
+            lines.append(f"Organized by: {event_details['organized_by']}")
+        if event_details.get("location"):
+            lines.append(f"Location: {event_details['location']}")
+
+        # combined 2 list
+        lines.extend(event_description_items)
 
         formatted = "\\n".join(lines)
 
