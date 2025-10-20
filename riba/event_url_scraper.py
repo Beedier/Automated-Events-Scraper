@@ -67,6 +67,7 @@ def get_event_urls_from_riba(
 
         # Try to go to the next page
         try:
+            time.sleep(1.5)
             # Find the current active page
             current = chromedriver.find_element(By.CSS_SELECTOR, ".pagination-button--current")
             current_page = int(current.text.strip())
