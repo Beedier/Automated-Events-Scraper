@@ -1,7 +1,6 @@
 import time
 from bs4 import BeautifulSoup
 from selenium.webdriver.ie.webdriver import WebDriver
-from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
@@ -16,42 +15,14 @@ def extract_all_event_date_times(driver) -> str:
     Returns:
         str: Newline-separated datetime strings.
     """
-    date_times = []
-
     try:
-        buttons = driver.find_elements(By.CSS_SELECTOR, "ul.child-event-dates-list button")
-    except NoSuchElementException:
-        buttons = []
-
-    if not buttons:
-        # Fallback: extract single datetime only
-        try:
-            datetime_span = WebDriverWait(driver, 10).until(
-                ec.visibility_of_element_located((By.CSS_SELECTOR, "span.date-info__full-datetime"))
-            )
-            return datetime_span.text.strip()
-        except Exception as e:
-            print(f"Could not locate any datetime: {e}")
-            return ""
-
-    for i in range(len(buttons)):
-        try:
-            buttons = driver.find_elements(By.CSS_SELECTOR, "ul.child-event-dates-list button")
-            button = buttons[i]
-            driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", button)
-            button.click()
-            time.sleep(1)
-
-            datetime_span = WebDriverWait(driver, 10).until(
-                ec.visibility_of_element_located((By.CSS_SELECTOR, "span.date-info__full-datetime"))
-            )
-            date_times.append(datetime_span.text.strip())
-
-        except Exception as e:
-            print(f"Error on button {i}: {e}")
-            continue
-
-    return "\\n".join(date_times)
+        time_tag = WebDriverWait(driver, 10).until(
+            ec.visibility_of_element_located((By.CSS_SELECTOR, "time.start-date-and-location__date"))
+        )
+        return time_tag.text.strip()
+    except Exception as e:
+        print(f"Could not locate any datetime: {e}")
+        return ""
 
 
 def get_event_web_content_from_event_bright(
@@ -77,20 +48,13 @@ def get_event_web_content_from_event_bright(
         soup = BeautifulSoup(chromedriver.page_source, "html.parser")
 
         event_title = clean_text(extract_text_or_none(soup.select_one("h1.event-title")))
-        event_intro = clean_text(extract_text_or_none(soup.select_one("p.summary > strong")))
+        event_summary = clean_text(extract_text_or_none(soup.select_one("div.summary")))
+        event_category = clean_text(extract_text_or_none(soup.select_one("div[data-testid='category-badge']")))
 
-        ticket_cost_el = soup.select_one('div[data-testid="panel-info"]')
-        if not ticket_cost_el:
-            ticket_cost_el = soup.select_one('span.CondensedConversionBar-module__priceTag___3AnIu')
+        ticket_cost_el = soup.select_one('div[data-testid="condensed-conversion-bar"] span.CondensedConversionBar-module__priceTag___3AnIu')
         ticket_cost = clean_text(ticket_cost_el.get_text()) if ticket_cost_el else "Free"
 
-        full_address = ""
-        address_container = soup.select_one('div.location-info__address')
-        if address_container:
-            map_toggle = address_container.select_one('div.map-button-toggle')
-            if map_toggle:
-                map_toggle.decompose()
-            full_address = clean_text(address_container.get_text())
+        full_address = clean_text(extract_text_or_none(soup.select_one('div.Location-module__addressWrapper___1mn7I')))
 
         event_description_el = soup.select_one("div.eds-text--left")
         event_description = clean_text(event_description_el.get_text()) if event_description_el else ""
@@ -105,8 +69,11 @@ def get_event_web_content_from_event_bright(
         else:
             return None
 
-        if event_intro:
-            lines.append(f"Short Description: {event_intro}")
+        if event_summary:
+            lines.append(f"Summary: {event_summary}")
+
+        if event_category:
+            lines.append(event_category)
 
         if full_address:
             lines.append(f"Location: {full_address}")
