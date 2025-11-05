@@ -51,8 +51,20 @@ def get_event_web_content_from_event_bright(
         event_summary = clean_text(extract_text_or_none(soup.select_one("div.summary")))
         event_category = clean_text(extract_text_or_none(soup.select_one("div[data-testid='category-badge']")))
 
-        ticket_cost_el = soup.select_one('div[data-testid="condensed-conversion-bar"] span.CondensedConversionBar-module__priceTag___3AnIu')
-        ticket_cost = clean_text(ticket_cost_el.get_text()) if ticket_cost_el else "Free"
+        ticket_cost = "Free"
+        # 1️⃣ Try top price selector
+        el = soup.select_one(
+            'div[data-testid="condensed-conversion-bar"] span.CondensedConversionBar-module__priceTag___3AnIu'
+        )
+        if el:
+            ticket_cost = clean_text(el.get_text())
+        else:
+            # 2️⃣ Fallback to panel-info price
+            el = soup.select_one("div.check-availability-btn__panel-info")
+            if el:
+                # take only the first text part (the cost), not message
+                price = el.get_text().split("\n")[0]
+                ticket_cost = clean_text(price)
 
         full_address = clean_text(extract_text_or_none(soup.select_one('div.Location-module__addressWrapper___1mn7I')))
 
