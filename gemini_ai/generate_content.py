@@ -47,7 +47,7 @@ def generate_text_with_gemini(api_key: str, prompt: str):
 
         # Generate content using the model.
         response = client.models.generate_content(
-            model='gemini-2.5-flash',
+            model='gemini-2.0-flash',
             contents=prompt,
             config=types.GenerateContentConfig(
                 response_mime_type='application/json',
