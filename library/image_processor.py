@@ -3,6 +3,7 @@ import io
 import uuid
 import requests
 from PIL import Image
+import cairosvg
 
 
 def _load_image(url: str, path: str) -> Image.Image:
@@ -24,11 +25,24 @@ def _load_image(url: str, path: str) -> Image.Image:
             headers = {'User-Agent': 'Mozilla/5.0'}
             response = requests.get(url, headers=headers, timeout=10)
             response.raise_for_status()
-            return Image.open(io.BytesIO(response.content)).convert("RGBA")
+            content = response.content
+
+            # Check if SVG
+            if url.lower().endswith('.svg') or b'<svg' in content[:100]:
+                png_data = cairosvg.svg2png(bytestring=content)
+                return Image.open(io.BytesIO(png_data)).convert("RGBA")
+
+            return Image.open(io.BytesIO(content)).convert("RGBA")
+
         else:
+            # Check if local file is SVG
+            if path.lower().endswith('.svg'):
+                png_data = cairosvg.svg2png(url=path)
+                return Image.open(io.BytesIO(png_data)).convert("RGBA")
+
             return Image.open(path).convert("RGBA")
     except Exception as e:
-        raise IOError(f"Failed to load image: {e}")
+        raise IOError(f"Failed to load image: {e} -> {url}")
 
 
 class ImageProcessor:
