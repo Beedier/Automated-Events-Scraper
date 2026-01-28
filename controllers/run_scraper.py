@@ -35,11 +35,13 @@ from beedier import (
     delete_media_async
 )
 
-from library import ImageProcessor, parse_json_to_dict, get_existing_event_urls
+from library import ImageProcessor, parse_json_to_dict, get_existing_event_urls, MinuteRateLimiter
 from gemini_ai import create_prompt, generate_text_with_gemini
 from ollama_ai import export_fine_tuning_events_to_json
 
 env_config = get_config()
+
+gemini_rate_limiter = MinuteRateLimiter(requests_per_minute=5)
 
 
 def run_scraper(category: str, target: str, include_existing: bool = False):
@@ -184,6 +186,8 @@ def run_scraper(category: str, target: str, include_existing: bool = False):
 
             for event in events:
                 prompt = create_prompt(input_text=event.web_content)
+
+                gemini_rate_limiter.wait_if_needed()
 
                 raw_response = generate_text_with_gemini(
                     api_key=env_config.get("GEMINI_API_KEY"),
