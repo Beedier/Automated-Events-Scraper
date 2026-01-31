@@ -8,4 +8,4 @@ from .text_utils import extract_clean_text
 from .event_category_mapper import get_event_category
 from .html_utils import extract_text_or_none, clean_text
 from .existing_events_checker import get_existing_event_urls
-from rate_limiter import MinuteRateLimiter
+from .rate_limiter import MinuteRateLimiter
