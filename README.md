@@ -59,6 +59,26 @@ WHERE DATE(created_at) = CURRENT_DATE
   AND remote_event_id IS NOT NULL;
 ```
 
+### Terminal command
+```commandline
+podman exec -it $(podman ps --filter "ancestor=postgres:13.22-alpine" --format "{{.Names}}") \
+  psql -U user -d mydb -c "
+SELECT website_name, COUNT(*) AS total_events
+FROM events
+WHERE DATE(created_at) = CURRENT_DATE
+  AND DATE(updated_at) = CURRENT_DATE
+  AND remote_event_id IS NOT NULL
+GROUP BY website_name
+UNION ALL
+SELECT 'total' AS website_name, COUNT(*) AS total_events
+FROM events
+WHERE DATE(created_at) = CURRENT_DATE
+  AND DATE(updated_at) = CURRENT_DATE
+  AND remote_event_id IS NOT NULL;
+"
+
+```
+
 ### Explanation
 
 * Filters events created and updated **today**.
@@ -77,8 +97,8 @@ Replace `2025-08-03` with any desired date to get statistics for that specific d
 ```sql
 SELECT website_name, COUNT(*) AS total_events
 FROM events
-WHERE DATE(created_at) = '2025-08-03'
-  AND DATE(updated_at) = '2025-08-03'
+WHERE DATE(created_at) = '2026-02-03'
+  AND DATE(updated_at) = '2026-02-03'
   AND remote_event_id IS NOT NULL
 GROUP BY website_name
 
@@ -86,9 +106,31 @@ UNION ALL
 
 SELECT 'total' AS website_name, COUNT(*) AS total_events
 FROM events
-WHERE DATE(created_at) = '2025-08-03'
-  AND DATE(updated_at) = '2025-08-03'
+WHERE DATE(created_at) = '2026-02-03'
+  AND DATE(updated_at) = '2026-02-03'
   AND remote_event_id IS NOT NULL;
+```
+
+
+### Terminal command
+```commandline
+podman exec -it $(podman ps --filter "ancestor=postgres:13.22-alpine" --format "{{.Names}}") \
+  psql -U user -d mydb -c "
+SELECT website_name, COUNT(*) AS total_events
+FROM events
+WHERE DATE(created_at) = '2026-02-03'
+  AND DATE(updated_at) = '2026-02-03'
+  AND remote_event_id IS NOT NULL
+GROUP BY website_name
+
+UNION ALL
+
+SELECT 'total' AS website_name, COUNT(*) AS total_events
+FROM events
+WHERE DATE(created_at) = '2026-02-03'
+  AND DATE(updated_at) = '2026-02-03'
+  AND remote_event_id IS NOT NULL;
+"
 ```
 
 ### Explanation
