@@ -1,18 +1,11 @@
-import enum
 from dbcore.session import Base
 from sqlalchemy import (
     Column, String, Integer, DateTime, Text, Boolean,
     func, ForeignKey, Enum, Table
 )
 from sqlalchemy.orm import relationship
+from dbcore.enums import PublishStatusEnum, EventCategoryEnum
 
-# -------------------------------------------------------------------
-# Enum for publish status of events
-# -------------------------------------------------------------------
-class PublishStatusEnum(str, enum.Enum):
-    unsynced = "unsynced"
-    draft = "draft"
-    published = "published"
 
 # -------------------------------------------------------------------
 # Association Table for many-to-many between Event and Category
@@ -52,7 +45,7 @@ class Event(Base):
     publish_status = Column(
         Enum(PublishStatusEnum, name="publish_status_enum"),
         nullable=False,
-        default=PublishStatusEnum.unsynced
+        default=PublishStatusEnum.UNSYNCED
     )
 
     updated_at = Column(DateTime, onupdate=func.now())

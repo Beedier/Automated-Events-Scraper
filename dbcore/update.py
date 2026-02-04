@@ -11,7 +11,7 @@ def set_event_web_content(
         event_id: int,
         web_content: str,
         generated_content: bool = False,
-        publish_status: PublishStatusEnum = PublishStatusEnum.unsynced
+        publish_status: PublishStatusEnum = PublishStatusEnum.UNSYNCED
 ) -> bool:
     """
     Update web_content and generated_content of the Event by event_id.
@@ -198,7 +198,7 @@ def set_event_generated_content(
     location: str = None,
     cost: str = None,
     generated_content: bool = True,
-    publish_status: PublishStatusEnum = PublishStatusEnum.unsynced
+    publish_status: PublishStatusEnum = PublishStatusEnum.UNSYNCED
 ) -> bool:
     """
     Update all content-related fields of an event, including category assignment.

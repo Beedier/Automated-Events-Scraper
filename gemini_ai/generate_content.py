@@ -1,8 +1,9 @@
 from google import genai
 from .create_prompt import SYSTEM_INSTRUCTION
 from pydantic import BaseModel, model_validator, Field
-from typing import List, Optional
+from typing import List, Optional, Any
 from google.genai import types
+from dbcore.enums import EventCategoryEnum
 
 
 # === 1. Define output JSON schema via Pydantic ===
@@ -15,8 +16,9 @@ class EventOutput(BaseModel):
     DateOrder: Optional[str]
     Location: Optional[str]
     Cost: Optional[str]
-    Categories: List[str] = Field(default_factory=list)
+    Categories: List[EventCategoryEnum] = Field(default_factory=list)
 
+    # Enforce defaults AFTER model creation
     @model_validator(mode="after")
     def enforce_all_or_none(self):
         if self.Categories is None:
@@ -26,8 +28,6 @@ class EventOutput(BaseModel):
             self.Dates = "Date not specified"  # Or other placeholder
 
         return self
-
-
 
 
 def generate_text_with_gemini(api_key: str, prompt: str):

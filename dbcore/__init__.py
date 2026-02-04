@@ -26,3 +26,5 @@ from .get import fetch_ready_events_for_publishing
 from .get import fetch_events_delete_from_wordpress
 from .get import fetch_images_delete_from_wordpress
 from .get import fetch_events_with_content_and_generated_flag
+
+from .enums import EventCategoryEnum, PublishStatusEnum
