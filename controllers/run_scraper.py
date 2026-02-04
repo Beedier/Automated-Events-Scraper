@@ -1,4 +1,5 @@
 import asyncio
+from gemini_ai import EventOutput
 from selenium_webdriver import get_selenium_chrome_driver
 from .get_scrapers import get_scraper_function
 from .get_all_targets import get_all_targets
@@ -189,31 +190,31 @@ def run_scraper(category: str, target: str, include_existing: bool = False):
 
                 gemini_rate_limiter.wait_if_needed()
 
-                raw_response = generate_text_with_gemini(
+                parsed_data = generate_text_with_gemini(
                     api_key=env_config.get("GEMINI_API_KEY"),
                     prompt=prompt
                 )
 
-                parsed_data = parse_json_to_dict(json_data=raw_response)
-
-                if parsed_data:
+                if isinstance(parsed_data, EventOutput):
                     has_updated = set_event_generated_content(
                         event_id=event.id,
-                        category_names=parsed_data.get("Categories"),
-                        title=parsed_data.get("Title"),
-                        index_intro=parsed_data.get("IndexIntro"),
-                        intro=parsed_data.get("Intro"),
-                        content=parsed_data.get("Content"),
-                        dates=parsed_data.get("Dates"),
-                        date_order=parsed_data.get("DateOrder"),
-                        location=parsed_data.get("Location"),
-                        cost=parsed_data.get("Cost")
+                        category_names=[c.value for c in parsed_data.Categories] if parsed_data.Categories else None,
+                        title=parsed_data.Title,
+                        index_intro=parsed_data.IndexIntro,
+                        intro=parsed_data.Intro,
+                        content=parsed_data.Content,
+                        dates=parsed_data.Dates,
+                        date_order=parsed_data.DateOrder,
+                        location=parsed_data.Location,
+                        cost=parsed_data.Cost
                     )
 
                     if has_updated:
                         print(
                             f"ID: {event.id}, Event Updated. Title: {parsed_data.get('Title')}"
                         )
+                else:
+                    print("Generate Error, please check your api key.")
 
     elif category == 'upload-media':
 

@@ -1,7 +1,7 @@
 from google import genai
 from .create_prompt import SYSTEM_INSTRUCTION
-from pydantic import BaseModel, model_validator, Field
-from typing import List, Optional, Any
+from pydantic import BaseModel, model_validator, Field, ValidationError
+from typing import List, Optional, Any, Union
 from google.genai import types
 from dbcore.enums import EventCategoryEnum
 
@@ -30,7 +30,7 @@ class EventOutput(BaseModel):
         return self
 
 
-def generate_text_with_gemini(api_key: str, prompt: str):
+def generate_text_with_gemini(api_key: str, prompt: str) -> Union[EventOutput, None]:
     """
     Generates text using the Gemini API based on input text and a prompt.
 
@@ -39,13 +39,11 @@ def generate_text_with_gemini(api_key: str, prompt: str):
         prompt (str): The prompt to guide the text generation.
 
     Returns:
-        str: The generated text, or None if an error occurs.
+        EventOutput if successful, otherwise a string describing the error.
     """
     try:
-        # Configure the Gemini API with the API key.
         client = genai.Client(api_key=api_key)
 
-        # Generate content using the model.
         response = client.models.generate_content(
             model='gemini-2.5-flash',
             contents=prompt,
@@ -55,9 +53,9 @@ def generate_text_with_gemini(api_key: str, prompt: str):
                 system_instruction=SYSTEM_INSTRUCTION
             )
         )
-        # Return the generated text.
-        return response.text
 
-    except Exception as e:
-        print(f"An error occurred: {e}")
+        return EventOutput.model_validate(response.to_json_dict())
+
+    except ValidationError as e:
+        # Return an error message instead of EventOutput
         return None
