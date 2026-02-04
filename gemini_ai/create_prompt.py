@@ -46,10 +46,7 @@ You are a professional content editor and SEO expert. Given an event description
      • Should directly reflect the event description's wording
    - Never null (always string output)
    
-9. "Categories": Select one or more relevant categories from the list below. Each category represents a distinct type of event:
-    - "Conferences and Networking Events" → Industry-wide conferences, professional networking socials, business meetups, and events designed to connect clients, collaborators, and industry experts.
-    - "Education Training and CPD" → Events focused on learning and professional development, including seminars, CPD-accredited training sessions, workshops, academic conferences, day courses, and knowledge-sharing forums.
-    - "Cultural Events and Exhibitions" → Events showcasing architectural culture and creativity such as design festivals, public talks by architects, guided walking tours, architectural film screenings, gallery exhibitions, and other culturally enriching experiences.
+9. "Categories": Return up to 3 exact category slug strings from the schema. Use the exact slugs as defined in the schema — do NOT invent or modify category names and do NOT return human-readable labels. If no schema category applies, return an empty list.
 """
 
 def create_prompt(input_text: str):

@@ -209,7 +209,7 @@ def fetch_events_with_remote_event_id_and_categories(website_name: str) -> list[
             .join(Event.categories)  # ensure there's at least one category
             .filter(
                 Event.website_name == website_name,
-                Event.publish_status == PublishStatusEnum.unsynced,
+                Event.publish_status == PublishStatusEnum.UNSYNCED,
                 Event.remote_event_id.isnot(None),
                 Category.remote_category_id.isnot(None)  # category is synced
             )
@@ -242,7 +242,7 @@ def fetch_ready_events_for_publishing(website_name: str) -> list[Event]:
             .join(Event.image)  # Join for filtering on Image
             .filter(
                 Event.website_name == website_name,
-                Event.publish_status == PublishStatusEnum.unsynced,
+                Event.publish_status == PublishStatusEnum.UNSYNCED,
 
                 Event.remote_event_id.isnot(None),
                 Event.generated_content.is_(True),

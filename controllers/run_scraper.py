@@ -364,7 +364,7 @@ def run_scraper(category: str, target: str, include_existing: bool = False):
                     # Mark event as draft
                     set_event_publish_status(
                         event_id=_event.id,
-                        status=PublishStatusEnum.draft
+                        status=PublishStatusEnum.DRAFT
                     )
 
                     print(f"Updated Event Content. Status: Draft, Event ID: {_event.id}")
@@ -397,7 +397,7 @@ def run_scraper(category: str, target: str, include_existing: bool = False):
                     # Mark event as unsynced
                     set_event_publish_status(
                         event_id=_event.id,
-                        status=PublishStatusEnum.unsynced
+                        status=PublishStatusEnum.UNSYNCED
                     )
 
                     set_event_remote_event_id(
