@@ -1,5 +1,6 @@
 import asyncio
-from gemini_ai import EventOutput
+import time
+from gemini_ai import EventOutput, GeminiGenerationError, GeminiRateLimitError
 from selenium_webdriver import get_selenium_chrome_driver
 from .get_scrapers import get_scraper_function
 from .get_all_targets import get_all_targets
@@ -36,13 +37,11 @@ from beedier import (
     delete_media_async
 )
 
-from library import ImageProcessor, parse_json_to_dict, get_existing_event_urls, CalendarMinuteRateLimiter
-from gemini_ai import create_prompt, generate_text_with_gemini
+from library import ImageProcessor, get_existing_event_urls
+from gemini_ai import create_prompt, generate_event_content
 from ollama_ai import export_fine_tuning_events_to_json
 
 env_config = get_config()
-
-gemini_rate_limiter = CalendarMinuteRateLimiter(requests_per_minute=5)
 
 
 def run_scraper(category: str, target: str, include_existing: bool = False):
@@ -186,35 +185,76 @@ def run_scraper(category: str, target: str, include_existing: bool = False):
                 events = fetch_events_with_non_generated_content(website_name=tgt)
 
             for event in events:
+                """Generate structured content for a single event and persist it.
+
+                This block uses `generate_event_content` which may raise:
+                - GeminiRateLimitError: quota exceeded; we wait & retry
+                - GeminiGenerationError: API or validation error; skip event
+                """
+
                 prompt = create_prompt(input_text=event.web_content)
 
-                gemini_rate_limiter.wait_if_needed()
+                max_retries = 2
+                retry_count = 0
+                parsed = None  # Initialize to track whether generation succeeded
 
-                parsed_data = generate_text_with_gemini(
-                    api_key=env_config.get("GEMINI_API_KEY"),
-                    prompt=prompt
+                while retry_count < max_retries:
+                    try:
+                        parsed = generate_event_content(
+                            api_key=env_config.get("GEMINI_API_KEY"),
+                            prompt=prompt
+                        )
+                        break  # Success; exit retry loop
+
+                    except GeminiRateLimitError as exc:
+                        # API quota exceeded; wait and retry intelligently.
+                        retry_count += 1
+                        if retry_count >= max_retries:
+                            print(
+                                f"Event ID {event.id}: Rate limit exceeded after "
+                                f"{max_retries} retries. Skipping event."
+                            )
+                            break  # Exit loop; skip this event
+
+                        # Extract recommended delay; add 1 second buffer for safety
+                        wait_seconds = (exc.retry_after_seconds or 60) + 1
+                        print(
+                            f"Event ID {event.id}: Rate limited. "
+                            f"Waiting {wait_seconds:.1f}s before retry {retry_count}..."
+                        )
+                        time.sleep(wait_seconds)
+                        # Loop will retry
+
+                    except GeminiGenerationError as exc:
+                        # Schema validation or API error; skip this event
+                        print(f"Failed to generate content for Event ID {event.id}: {exc}")
+                        break  # Exit retry loop; move to next event
+
+                # Guard: ensure generation succeeded and we have parsed data
+                if parsed is None:
+                    continue
+
+                # Verify we received the expected Pydantic model
+                if not isinstance(parsed, EventOutput):
+                    print(f"Unexpected response for Event ID {event.id}: {type(parsed)}")
+                    continue
+
+                # Persist generated content into the database
+                has_updated = set_event_generated_content(
+                    event_id=event.id,
+                    category_names=[c.value for c in parsed.Categories] if parsed.Categories else None,
+                    title=parsed.Title,
+                    index_intro=parsed.IndexIntro,
+                    intro=parsed.Intro,
+                    content=parsed.Content,
+                    dates=parsed.Dates,
+                    date_order=parsed.DateOrder,
+                    location=parsed.Location,
+                    cost=parsed.Cost
                 )
 
-                if isinstance(parsed_data, EventOutput):
-                    has_updated = set_event_generated_content(
-                        event_id=event.id,
-                        category_names=[c.value for c in parsed_data.Categories] if parsed_data.Categories else None,
-                        title=parsed_data.Title,
-                        index_intro=parsed_data.IndexIntro,
-                        intro=parsed_data.Intro,
-                        content=parsed_data.Content,
-                        dates=parsed_data.Dates,
-                        date_order=parsed_data.DateOrder,
-                        location=parsed_data.Location,
-                        cost=parsed_data.Cost
-                    )
-
-                    if has_updated:
-                        print(
-                            f"ID: {event.id}, Event Updated. Title: {parsed_data.get('Title')}"
-                        )
-                else:
-                    print("Generate Error, please check your api key.")
+                if has_updated:
+                    print(f"ID: {event.id}, Event Updated. Title: {parsed.Title}")
 
     elif category == 'upload-media':
 
