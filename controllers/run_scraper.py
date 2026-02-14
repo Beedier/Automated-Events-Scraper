@@ -192,7 +192,6 @@ def run_scraper(category: str, target: str, include_existing: bool = False):
                 - GeminiGenerationError: API or validation error; skip event
                 """
 
-                prompt = create_prompt(input_text=event.web_content)
 
                 max_retries = 2
                 retry_count = 0
@@ -202,7 +201,7 @@ def run_scraper(category: str, target: str, include_existing: bool = False):
                     try:
                         parsed = generate_event_content(
                             api_key=env_config.get("GEMINI_API_KEY"),
-                            prompt=prompt
+                            prompt=event.web_content
                         )
                         break  # Success; exit retry loop
 
