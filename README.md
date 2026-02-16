@@ -61,7 +61,7 @@ WHERE DATE(created_at) = CURRENT_DATE
 
 ### Terminal command
 ```commandline
-podman exec -it $(podman ps --filter "ancestor=postgres:13.22-alpine" --format "{{.Names}}") \
+podman exec -it $(podman ps --filter "ancestor=postgres:15-alpine" --format "{{.Names}}") \
   psql -U user -d mydb -c "
 SELECT website_name, COUNT(*) AS total_events
 FROM events
@@ -114,7 +114,7 @@ WHERE DATE(created_at) = '2026-02-03'
 
 ### Terminal command
 ```commandline
-podman exec -it $(podman ps --filter "ancestor=postgres:13.22-alpine" --format "{{.Names}}") \
+podman exec -it $(podman ps --filter "ancestor=postgres:15-alpine" --format "{{.Names}}") \
   psql -U user -d mydb -c "
 SELECT website_name, COUNT(*) AS total_events
 FROM events
