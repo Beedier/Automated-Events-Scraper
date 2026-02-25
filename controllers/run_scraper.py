@@ -38,7 +38,9 @@ from beedier import (
 )
 
 from library import ImageProcessor, get_existing_event_urls
-from gemini_ai import create_prompt, generate_event_content
+from gemini_ai import generate_event_content
+from llama_cpp_ai import generate_event_content_by_llama_cpp_ai
+from structured_llm import ValidationError, GrammarGenerationError
 from ollama_ai import export_fine_tuning_events_to_json
 
 env_config = get_config()
@@ -173,7 +175,7 @@ def run_scraper(category: str, target: str, include_existing: bool = False):
                 else:
                     print("Update Error")
 
-    elif category == 'generate-content':
+    elif category == 'generate-content-by-gemini-ai':
 
         for tgt in targets:
             print(f"Generating Content: {category} {tgt}")
@@ -250,6 +252,49 @@ def run_scraper(category: str, target: str, include_existing: bool = False):
                     date_order=parsed.DateOrder,
                     location=parsed.Location,
                     cost=parsed.Cost
+                )
+
+                if has_updated:
+                    print(f"ID: {event.id}, Event Updated. Title: {parsed.Title}")
+
+    elif category == 'generate-content-by-llama-cpp-ai':
+
+        for tgt in targets:
+
+            print(f"Generating Content: {category} {tgt}")
+
+            events = (
+                fetch_events_with_web_content(website_name=tgt)
+                if include_existing
+                else fetch_events_with_non_generated_content(website_name=tgt)
+            )
+
+            for event in events:
+                try:
+                    parsed = generate_event_content_by_llama_cpp_ai(
+                        server_url=env_config.get("LLAMA_CPP_SERVER_URL"),
+                        prompt=event.web_content,
+                    )
+                except (GrammarGenerationError, ValidationError) as exc:
+                    # Skip this event and move to the next one
+                    print(f"Failed to generate content for Event ID {event.id}: {exc}")
+                    continue
+
+                if not isinstance(parsed, EventOutput):
+                    print(f"Unexpected response type for Event ID {event.id}: {type(parsed)}")
+                    continue
+
+                has_updated = set_event_generated_content(
+                    event_id=event.id,
+                    category_names=[c.value for c in parsed.Categories] if parsed.Categories else None,
+                    title=parsed.Title,
+                    index_intro=parsed.IndexIntro,
+                    intro=parsed.Intro,
+                    content=parsed.Content,
+                    dates=parsed.Dates,
+                    date_order=parsed.DateOrder,
+                    location=parsed.Location,
+                    cost=parsed.Cost,
                 )
 
                 if has_updated:

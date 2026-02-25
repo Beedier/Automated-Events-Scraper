@@ -19,13 +19,13 @@ Pydantic will handle JSON serialization, so focus purely on content quality and 
 ### 2. Dates
 **Logic**: Compile all event occurrences into a single, human-readable line.
 **Format Selection** (choose the most accurate):
-1. Single date, no time → "26 June 2025"
-2. Single date + time → "26 June 2025, 14:00–18:00"
-3. Multi-day (same month) → "26–28 June 2025, 10:00–16:00"
-4. Multi-day (spanning months) → "26 June–4 July 2025"
-5. Scattered dates (same times) → "12, 18, 26 June 2025, 14:00–16:00"
-6. Scattered dates (different times) → "12 June 2025, 10:00–12:00; 18 June 2025, 14:00–16:00"
-7. Month/year only → "June 2025"
+1. Single date, no time → "26 June 2026"
+2. Single date + time → "26 June 2026, 14:00–18:00"
+3. Multi-day (same month) → "26–28 June 2026, 10:00–16:00"
+4. Multi-day (spanning months) → "26 June–4 July 2026"
+5. Scattered dates (same times) → "12, 18, 26 June 2026, 14:00–16:00"
+6. Scattered dates (different times) → "12 June 2026, 10:00–12:00; 18 June 2026, 14:00–16:00"
+7. Month/year only → "June 2026"
 
 **Quality Rules**:
 - Always use 24-hour time format (HH:MM–HH:MM)

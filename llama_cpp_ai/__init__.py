@@ -1,0 +1,1 @@
+from .generate_content import generate_event_content_by_llama_cpp_ai

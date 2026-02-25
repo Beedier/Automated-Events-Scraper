@@ -16,10 +16,10 @@ def get_all_targets():
         ("process-image", "bco-org"),
         ("process-image", "event-bright"),
 
-        ("generate-content", "riba"),
-        ("generate-content", "nla"),
-        ("generate-content", "bco-org"),
-        ("generate-content", "event-bright"),
+        ("generate-content-by-gemini-ai", "riba"),
+        ("generate-content-by-gemini-ai", "nla"),
+        ("generate-content-by-gemini-ai", "bco-org"),
+        ("generate-content-by-gemini-ai", "event-bright"),
 
         ("upload-media", "riba"),
         ("upload-media", "nla"),
@@ -56,9 +56,9 @@ def get_all_targets():
         ("delete-event", "bco-org"),
         ("delete-event", "event-bright"),
 
-        ("generate-fine-tuning-dataset", "riba"),
-        ("generate-fine-tuning-dataset", "nla"),
-        ("generate-fine-tuning-dataset", "bco-org"),
-        ("generate-fine-tuning-dataset", "event-bright"),
+        ("generate-content-by-llama-cpp-ai", "riba"),
+        ("generate-content-by-llama-cpp-ai", "nla"),
+        ("generate-content-by-llama-cpp-ai", "bco-org"),
+        ("generate-content-by-llama-cpp-ai", "event-bright"),
         # add more pairs here as needed
     ]

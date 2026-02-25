@@ -13,7 +13,7 @@ podman-compose up -d && \
 uv run main.py event-url all && \
 uv run main.py process-image all && \
 uv run main.py event-web-content all && \
-uv run main.py generate-content all && \
+uv run main.py generate-content-by-gemini-ai all && \
 uv run main.py upload-media all && \
 uv run main.py create-event all && \
 uv run main.py update-event-category all && \
