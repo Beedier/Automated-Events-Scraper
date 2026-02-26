@@ -30,71 +30,93 @@ def get_event_web_content_from_event_bright(
     chromedriver: WebDriver
 ) -> str | None:
     """
-    Loads an Eventbrite event detail page, extracts and formats event data.
+    Loads an Eventbrite event detail page, clicks 'Read more' if present,
+    extracts and formats event data from targeted sections.
 
     Args:
         event_url (str): URL of the event page.
         chromedriver (WebDriver): Selenium WebDriver instance.
 
     Returns:
-        str: A formatted string with event details.
+        str: A formatted string with event details, or None if extraction fails.
     """
     chromedriver.get(event_url)
-
+    time.sleep(3)
     try:
-        # wait to load whole page properly
-        time.sleep(5)
-
         soup = BeautifulSoup(chromedriver.page_source, "html.parser")
 
-        event_title = clean_text(extract_text_or_none(soup.select_one("h1.event-title")))
-        event_summary = clean_text(extract_text_or_none(soup.select_one("div.summary")))
-        event_category = clean_text(extract_text_or_none(soup.select_one("div[data-testid='category-badge']")))
+        # Scope extraction to the two main content sections
+        event_details_el = soup.select_one("[data-testid='event-details']")
+        overview_el = soup.select_one("[data-testid='section-wrapper-overview']")
 
-        ticket_cost = "Free"
-        # 1️⃣ Try top price selector
-        el = soup.select_one(
-            'div[data-testid="condensed-conversion-bar"] span.CondensedConversionBar-module__priceTag___3AnIu'
+        # Helper to search within scoped sections first, fallback to full soup
+        def scoped_select(selector: str):
+            for section in [event_details_el, overview_el]:
+                if section:
+                    el = section.select_one(selector)
+                    if el:
+                        return el
+            return soup.select_one(selector)
+
+        # --- Title (from full soup, it's usually in the header) ---
+        event_title = clean_text(
+            extract_text_or_none(soup.select_one("h1[data-testid='event-title']"))
         )
-        if el:
-            ticket_cost = clean_text(el.get_text())
+
+        # --- Ticket cost (conversion bar is outside main sections, always use full soup) ---
+        conversion_bar_headline_element = soup.select_one(
+            '[data-testid="conversion-bar-headline"] span'
+        )
+        sales_start_soon_panel_element = soup.select_one(
+            '[data-testid="sales-start-soon-panel-label"]'
+        )
+        if conversion_bar_headline_element:
+            ticket_cost = clean_text(conversion_bar_headline_element.get_text())
+        elif sales_start_soon_panel_element:
+            ticket_cost = clean_text(sales_start_soon_panel_element.get_text())
         else:
-            # 2️⃣ Fallback to panel-info price
-            el = soup.select_one("div.check-availability-btn__panel-info")
-            if el:
-                # take only the first text part (the cost), not message
-                price = el.get_text().split("\n")[0]
-                ticket_cost = clean_text(price)
+            ticket_cost = "FREE"
 
-        full_address = clean_text(extract_text_or_none(soup.select_one('div.Location-module__addressWrapper___1mn7I')))
+        # --- Location ---
+        location = clean_text(
+            extract_text_or_none(scoped_select("a[data-testid='event-venue']"))
+        )
 
-        event_description_el = soup.select_one("div.eds-text--left")
-        event_description = clean_text(event_description_el.get_text()) if event_description_el else ""
+        # --- Description (from overview section after Read More click) ---
+        if overview_el:
+            event_description = clean_text(
+                overview_el.get_text(separator=" ", strip=True)
+            )
+        else:
+            event_description = ""
 
-        event_date_times = extract_all_event_date_times(driver=chromedriver)
+        # --- Date/Time: try scoped sections first, fallback to conversion bar date ---
+        event_date_time = clean_text(
+            extract_text_or_none(scoped_select("div[data-testid='event-datetime'] span"))
+        )
+        if not event_date_time:
+            event_date_time = clean_text(
+                extract_text_or_none(
+                    soup.select_one('[data-testid="conversion-bar-date"]')
+                )
+            )
 
-        # Format output string as single line with \n separators
+        # --- Build formatted output ---
         lines = []
 
         if event_title:
             lines.append(f"Title: {event_title}")
         else:
-            return None
+            return None  # Title is mandatory
 
-        if event_summary:
-            lines.append(f"Summary: {event_summary}")
-
-        if event_category:
-            lines.append(event_category)
-
-        if full_address:
-            lines.append(f"Location: {full_address}")
+        if location:
+            lines.append(f"Location: {location}")
 
         if ticket_cost:
             lines.append(f"Cost: {ticket_cost}")
 
-        if event_date_times:
-            lines.append(f"Dates: {event_date_times.strip()}")
+        if event_date_time:
+            lines.append(f"Datetime: {event_date_time.strip()}")
 
         if event_description:
             lines.append(f"Description: {event_description}")
@@ -104,5 +126,5 @@ def get_event_web_content_from_event_bright(
         return formatted
 
     except Exception as e:
-        print(e)
+        print(f"[Eventbrite Scraper Error] {event_url}: {e}")
         return None
