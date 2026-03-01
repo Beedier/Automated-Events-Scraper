@@ -15,4 +15,3 @@ chromedriver-linux64/
 
 # processed image
 images/process-image/*
-*.json
