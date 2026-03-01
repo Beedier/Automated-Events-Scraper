@@ -11,13 +11,28 @@ services:
       - event_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    networks:
+      - app_network
 
-  adminer:
-    image: docker.io/library/adminer:latest
+  pgadmin:
+    image: docker.io/dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
     ports:
-      - "8080:8080"
+      - "5050:80"
     depends_on:
       - db
+    volumes:
+      - ./pgadmin/servers.json:/pgadmin4/servers.json:ro
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
 
 volumes:
   event_data:
