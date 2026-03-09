@@ -1,6 +1,6 @@
 import os
 import aiohttp
-import asyncio
+import mimetypes
 from typing import Optional
 
 async def upload_media_async(
@@ -9,24 +9,23 @@ async def upload_media_async(
     wp_password: str,
     wp_url: str = "https://staging.beedier.com/wp-json"
 ) -> Optional[int]:
-    """
-    Asynchronously uploads a media file to a WordPress site via REST API.
-
-    Returns:
-        Optional[int]: Media item ID if upload is successful, else None.
-    """
     if not os.path.exists(file_path):
         print(f"Error: File not found - {file_path}")
         return None
 
     file_name = os.path.basename(file_path)
     url = f"{wp_url}/wp/v2/media"
+
+    mime_type, _ = mimetypes.guess_type(file_path)
+    mime_type = mime_type or "application/octet-stream"
+
     headers = {
-        "Content-Disposition": f"attachment; filename={file_name}"
+        "Content-Type": mime_type,
+        "Content-Disposition": f'attachment; filename="{file_name}"',
     }
 
     try:
-        with open(file_path, 'rb') as f:
+        with open(file_path, "rb") as f:
             file_content = f.read()
 
         auth = aiohttp.BasicAuth(wp_username, wp_password)
@@ -35,14 +34,16 @@ async def upload_media_async(
             async with session.post(
                 url,
                 headers=headers,
-                data=file_content
+                data=file_content,
             ) as response:
+                text = await response.text()
+
                 if response.status in (200, 201):
                     json_response = await response.json()
                     return int(json_response.get("id"))
-                else:
-                    text = await response.text()
-                    print(f"Upload failed: {response.status} - {text}")
+
+                print(f"Upload failed: {response.status} - {text}")
+
     except aiohttp.ClientError as e:
         print(f"Client error during media upload: {e}")
     except Exception as e:
