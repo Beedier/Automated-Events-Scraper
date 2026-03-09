@@ -17,7 +17,7 @@ if [ ! -f "$DATA_FILE" ]; then
   exit 2
 fi
 
-CONTAINER_ID=$(podman ps --filter "name=${DB_SERVICE_NAME}" --format "{{.ID}}" | head -n 1)
+CONTAINER_ID=$(docker ps --filter "name=${DB_SERVICE_NAME}" --format "{{.ID}}" | head -n 1)
 
 if [ -z "$CONTAINER_ID" ]; then
   echo "❌ Database container ($DB_SERVICE_NAME) not running."
@@ -26,7 +26,7 @@ fi
 
 echo "🧹 Discovering tables to truncate..."
 
-TABLES=$(podman exec -i "$CONTAINER_ID" psql -U "$DB_USER" -d "$DB_NAME" -t -c \
+TABLES=$(docker exec -i "$CONTAINER_ID" psql -U "$DB_USER" -d "$DB_NAME" -t -c \
   "SELECT tablename FROM pg_tables WHERE schemaname='public' AND tablename != 'alembic_version';" | tr -d ' ')
 
 if [ -z "$TABLES" ]; then
@@ -34,7 +34,7 @@ if [ -z "$TABLES" ]; then
 else
   for table in $TABLES; do
     echo "🔁 Truncating $table..."
-    podman exec -i "$CONTAINER_ID" psql -U "$DB_USER" -d "$DB_NAME" -c "TRUNCATE TABLE $table RESTART IDENTITY CASCADE;"
+    docker exec -i "$CONTAINER_ID" psql -U "$DB_USER" -d "$DB_NAME" -c "TRUNCATE TABLE $table RESTART IDENTITY CASCADE;"
   done
 fi
 
@@ -42,14 +42,14 @@ echo "📥 Restoring data from $DATA_FILE ..."
 
 # Detect gzipped file and decompress on-the-fly
 if [[ "$DATA_FILE" == *.gz ]]; then
-  if gunzip -c "$DATA_FILE" | podman exec -i "$CONTAINER_ID" psql -U "$DB_USER" -d "$DB_NAME"; then
+  if gunzip -c "$DATA_FILE" | docker exec -i "$CONTAINER_ID" psql -U "$DB_USER" -d "$DB_NAME"; then
     echo "✅ Restore completed from compressed file."
   else
     echo "❌ Restore failed from compressed file."
     exit 4
   fi
 else
-  if podman exec -i "$CONTAINER_ID" psql -U "$DB_USER" -d "$DB_NAME" < "$DATA_FILE"; then
+  if docker exec -i "$CONTAINER_ID" psql -U "$DB_USER" -d "$DB_NAME" < "$DATA_FILE"; then
     echo "✅ Restore completed from SQL file."
   else
     echo "❌ Restore failed from SQL file."
