@@ -8,7 +8,7 @@ This project automates the collection and publication of architectural events fr
 
 ### Comprehensive Event Processing and Deployment Pipeline (Single Command). For pro user (not recommended for everybody.)
 ```commandline
-podman-compose up -d && \
+docker compose up -d && \
 ./restore_data.sh db_data_backup.sql.gz && \
 uv run main.py event-url all && \
 uv run main.py process-image all && \
@@ -26,7 +26,7 @@ git checkout master && \
 git merge dev && \
 git push -u origin master && \
 git checkout dev && \
-podman-compose down
+docker compose down
 ```
 ---
 
@@ -61,7 +61,7 @@ WHERE DATE(created_at) = CURRENT_DATE
 
 ### Terminal command
 ```commandline
-podman exec -it $(podman ps --filter "ancestor=postgres:16-alpine" --format "{{.Names}}") \
+docker exec -it $(docker ps --filter "ancestor=postgres:16-alpine" --format "{{.Names}}") \
   psql -U user -d mydb -c "
 SELECT website_name, COUNT(*) AS total_events
 FROM events
@@ -114,7 +114,7 @@ WHERE DATE(created_at) = '2026-02-03'
 
 ### Terminal command
 ```commandline
-podman exec -it $(podman ps --filter "ancestor=postgres:16-alpine" --format "{{.Names}}") \
+docker exec -it $(docker ps --filter "ancestor=postgres:16-alpine" --format "{{.Names}}") \
   psql -U user -d mydb -c "
 SELECT website_name, COUNT(*) AS total_events
 FROM events
@@ -152,20 +152,20 @@ WHERE DATE(created_at) = '2026-02-03'
 
 - Linux-based OS
 - Python 3.9+
-- Podman
-- Podman Compose
+- docker
+- docker Compose
 - Chrome browser and Chromedriver (for Selenium)
 
 ### 2. Initial Setup
 
 ```bash
-# Install Podman and Podman Compose (Ubuntu/Debian)
+# Install docker and docker Compose (Ubuntu/Debian)
 sudo apt-get update
-sudo apt-get install -y podman podman-compose
+sudo apt-get install -y docker docker-compose
 
-# Verify Podman installation
-podman --version
-podman-compose --version
+# Verify docker installation
+docker --version
+docker compose --version
 
 # Install uv (Python package manager)
 curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -195,20 +195,20 @@ uv pip list
    - AI API keys (Gemini/LLaMA)
    - Scraping targets configuration
 
-### 4. Using Podman Compose
+### 4. Using docker Compose
 
 ```bash
 # Build and start all services defined in docker-compose.yml
-podman-compose up -d
+docker compose up -d
 
 # View running containers
-podman-compose ps
+docker compose ps
 
 # View logs
-podman-compose logs -f
+docker compose logs -f
 
 # Stop services
-podman-compose down
+docker-compose down
 ```
 
 The `docker-compose.yml` file contains all necessary service configurations, including:
@@ -478,7 +478,7 @@ alembic upgrade head
 
 ### Logs
 
-- Container logs: `podman logs events-scraper`
+- Container logs: `docker logs events-scraper`
 
 ### Common Issues
 
