@@ -15,7 +15,7 @@ services:
       - app_network
 
   pgadmin:
-    image: docker.io/dpage/pgadmin4:latest
+    image: docker.io/dpage/pgadmin4:9.13.0
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@admin.com
       PGADMIN_DEFAULT_PASSWORD: admin
